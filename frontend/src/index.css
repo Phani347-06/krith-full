@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&display=swap');
 @import "tailwindcss";
 
 * {
@@ -6,118 +7,242 @@
 
 @theme {
   /* Colors */
-  --color-surface-variant: #e2e2e2;
-  --color-lemon-400: #f8cc65;
-  --color-matcha-600: #078a52;
-  --color-oat-border: #dad4c8;
-  --color-clay-black: #000000;
-  --color-lemon-700: #d08a11;
-  --color-surface-container-high: #e8e8e8;
-  --color-on-secondary: #ffffff;
-  --color-lemon-500: #fbbd41;
-  --color-surface-container-low: #f3f3f3;
-  --color-secondary-fixed: #e3e2e0;
-  --color-ube-900: #32037d;
-  --color-on-secondary-fixed: #1a1c1b;
-  --color-pomegranate-400: #fc7981;
-  --color-error-container: #ffdad6;
-  --color-ube-800: #43089f;
-  --color-error: #ba1a1a;
-  --color-on-surface: #1b1b1b;
-  --color-blueberry-800: #01418d;
-  --color-surface-container-highest: #e2e2e2;
-  --color-surface-tint: #5e5e5e;
-  --color-ube-300: #c1b0ff;
-  --color-primary-fixed: #e2e2e2;
-  --color-tertiary-container: #1b1b1b;
-  --color-inverse-on-surface: #f1f1f1;
-  --color-on-tertiary-fixed-variant: #474747;
-  --color-surface-bright: #f9f9f9;
-  --color-inverse-surface: #303030;
-  --color-secondary: #5e5e5d;
-  --color-warm-charcoal: #55534e;
-  --color-inverse-primary: #c6c6c6;
-  --color-on-surface-variant: #4c4546;
-  --color-on-tertiary-fixed: #1b1b1b;
+  --color-surface-tint: #8a5100;
+  --color-primary-container: #ff9a00;
+  --color-tertiary-fixed-dim: #c6c4df;
   --color-on-error-container: #93000a;
-  --color-slushie-500: #3bd3fd;
-  --color-surface: #f9f9f9;
-  --color-on-background: #1b1b1b;
-  --color-primary: #000000;
-  --color-oat-light: #eee9df;
-  --color-surface-dim: #dadada;
-  --color-primary-fixed-dim: #c6c6c6;
+  --color-surface-variant: #f1e1b9;
+  --color-surface-bright: #fff8f0;
+  --color-secondary: #bb0027;
+  --color-on-surface: #221b03;
+  --color-inverse-surface: #383014;
+  --color-inverse-primary: #ffb86d;
+  --color-on-background: #221b03;
+  --color-on-surface-variant: #544434;
+  --color-inverse-on-surface: #fff0ca;
+  --color-surface-container-high: #f7e7bf;
+  --color-on-tertiary-fixed: #1a1a2e;
   --color-on-primary: #ffffff;
-  --color-background: #f9f9f9;
-  --color-secondary-fixed-dim: #c7c6c5;
-  --color-matcha-800: #02492a;
-  --color-on-error: #ffffff;
-  --color-dragonfruit-magenta: #ff00ff;
-  --color-tertiary: #000000;
-  --color-on-primary-fixed-variant: #474747;
-  --color-pure-white: #ffffff;
-  --color-warm-silver: #9f9b93;
-  --color-on-tertiary: #ffffff;
-  --color-outline: #7e7576;
-  --color-tertiary-fixed-dim: #c6c6c6;
-  --color-focus-ring: #146ef5;
-  --color-on-secondary-fixed-variant: #464746;
-  --color-surface-container: #eeeeee;
-  --color-warm-cream: #faf9f7;
-  --color-slushie-800: #0089ad;
-  --color-tertiary-fixed: #e2e2e2;
-  --color-matcha-300: #84e7a5;
-  --color-lemon-800: #9d6a09;
-  --color-primary-container: #1b1b1b;
-  --color-on-secondary-container: #626361;
-  --color-on-primary-container: #848484;
+  --color-surface-container-low: #fff3d7;
+  --color-on-secondary: #ffffff;
+  --color-outline: #877361;
+  --color-surface-dim: #e9d9b1;
+  --color-secondary-fixed-dim: #ffb3b1;
+  --color-surface: #fff8f0;
   --color-surface-container-lowest: #ffffff;
-  --color-outline-variant: #cfc4c5;
-  --color-secondary-container: #e0dfde;
-  --color-on-primary-fixed: #1b1b1b;
-  --color-on-tertiary-container: #848484;
+  --color-surface-container: #fdedc4;
+  --color-on-tertiary: #ffffff;
+  --color-on-primary-fixed-variant: #693c00;
+  --color-on-secondary-container: #fffbff;
+  --color-on-error: #ffffff;
+  --color-on-secondary-fixed: #410007;
+  --color-error-container: #ffdad6;
+  --color-on-tertiary-container: #424258;
+  --color-tertiary: #5d5c74;
+  --color-primary-fixed-dim: #ffb86d;
+  --color-tertiary-fixed: #e2e0fc;
+  --color-on-tertiary-fixed-variant: #45455b;
+  --color-secondary-container: #e0283c;
+  --color-secondary-fixed: #ffdad8;
+  --color-on-primary-fixed: #2c1600;
+  --color-on-primary-container: #653a00;
+  --color-primary-fixed: #ffdcbd;
+  --color-tertiary-container: #b1afca;
+  --color-primary: #8a5100;
+  --color-on-secondary-fixed-variant: #92001c;
+  --color-background: #fff8f0;
+  --color-outline-variant: #dac2ad;
+  --color-error: #ba1a1a;
+  --color-surface-container-highest: #f1e1b9;
 
-  /* Font Families */
-  --font-card-heading: "Epilogue", sans-serif;
-  --font-section-heading: "Epilogue", sans-serif;
-  --font-button: "Plus Jakarta Sans", sans-serif;
-  --font-label-uppercase: "Space Grotesk", sans-serif;
-  --font-monospace-ui: "Space Grotesk", sans-serif;
-  --font-display-hero: "Epilogue", sans-serif;
-  --font-display-secondary: "Epilogue", sans-serif;
-  --font-body-standard: "Plus Jakarta Sans", sans-serif;
-  --font-body-large: "Plus Jakarta Sans", sans-serif;
+  /* Fonts */
+  --font-label-caps: "Lexend", sans-serif;
+  --font-headline-md: "Epilogue", sans-serif;
+  --font-headline-lg: "Epilogue", sans-serif;
+  --font-body-md: "Lexend", sans-serif;
+  --font-body-lg: "Lexend", sans-serif;
 
-  /* Font Sizes - Approximated from user values */
-  --text-card-heading: 32px;
-  --text-section-heading: 44px;
-  --text-display-hero: 80px;
-  --text-display-secondary: 60px;
-  --spacing-section-gap: 160px;
+  /* Anime / Manga Theme Extensions from previous session */
+  --font-bangers: 'Bangers', cursive;
+  --font-marker: 'Permanent Marker', cursive;
 }
 
 @layer utilities {
-  .clay-shadow {
-    box-shadow: 0px 1px 1px rgba(0,0,0,0.05), 0px -1px 1px inset rgba(0,0,0,0.05), 0px -0.5px 1px rgba(0,0,0,0.02);
+  .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    vertical-align: middle;
   }
-  .hard-shadow-hover:hover {
-    box-shadow: -7px 7px 0px 0px rgba(0,0,0,1);
+  .ninja-grid {
+    background-image: radial-gradient(circle, rgba(34, 27, 3, 0.1) 1.5px, transparent 1.5px);
+    background-size: 32px 32px;
   }
-  .btn-interaction {
-    @apply transition-all duration-200;
+  .brush-border {
+    border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 5L95 7L93 95L7 93L5 5Z' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 20 stretch;
   }
-  .btn-interaction:hover {
-    @apply -translate-y-1 -rotate-2;
+  .manga-speed-lines {
+    background: repeating-conic-gradient(from 0deg, transparent 0deg 10deg, rgba(255, 154, 0, 0.05) 10deg 20deg);
   }
-  .bg-grid-pattern {
-    background-image: radial-gradient(#dad4c8 1px, transparent 1px);
-    background-size: 24px 24px;
+  .parchment-texture {
+    background-color: #fdf5e6;
+    background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBeoZWRKxL92kkqwZDCrZ934NV6_GlsI4DY0exk5wABqPZ3BL6PIFqtxjL-geIdwL7qq94c01Oto8yXfGYERzhCs3Kk1i8NgZOsYzHoGcC9vFkv01SaFuBvyr_pZhFhzgc8H5KijnMgAivq5kCE2IEGier9yQKnAgC0lB2qDLdq5zEqRpmvh1hEl-xmWVrEfQVAgXWEJo_JpVfdULNa71j5srC6UEZtmCWMdfzymgtep0Cz6lVxag_orEXICzyz-6Rp4RKyJAHNls4");
   }
-  .hover-hard-shadow:hover {
-    box-shadow: -7px 7px 0px 0px rgba(0,0,0,1);
-    transform: rotateZ(-8deg) translateY(-8px);
+
+  /* From previous session to not break overlays immediately */
+  .manga-bg {
+    background-color: #fdf5e6;
+    background-image: radial-gradient(#dac2ad 2px, transparent 2px);
+    background-size: 20px 20px;
   }
-  .hover-interaction-transition {
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  .manga-panel {
+    background-color: #ffffff;
+    border: 4px solid #111111;
+    border-radius: 4px;
+    box-shadow: 12px 12px 0px 0px rgba(17, 17, 17, 1);
+  }
+  .manga-panel-orange {
+    background-color: #ff5722;
+    border: 4px solid #111111;
+    border-radius: 4px;
+    box-shadow: 12px 12px 0px 0px rgba(17, 17, 17, 1);
+    color: white;
+  }
+  .manga-shadow {
+    box-shadow: 8px 8px 0px 0px rgba(17, 17, 17, 1);
+  }
+  .manga-shadow-hover {
+    transition: all 0.2s ease-in-out;
+  }
+  .manga-shadow-hover:hover {
+    box-shadow: 12px 12px 0px 0px rgba(17, 17, 17, 1);
+    transform: translate(-4px, -4px);
+  }
+  .naruto-scroll {
+    background-color: #f4ecd8;
+    border-top: 4px solid #111111;
+    border-bottom: 4px solid #111111;
+    box-shadow: 12px 12px 0px rgba(0,0,0,1);
+    position: relative;
+    border-left: 24px solid #5c3a21;
+    border-right: 24px solid #5c3a21;
+  }
+  .naruto-scroll::before, .naruto-scroll::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    bottom: -12px;
+    width: 16px;
+    background-color: #f59e0b;
+    border: 4px solid #111111;
+    border-radius: 4px;
+    box-shadow: 2px 2px 0px rgba(0,0,0,1);
+  }
+  .naruto-scroll::before { left: -32px; }
+  .naruto-scroll::after { right: -32px; }
+
+  .halftone-bg {
+    background-color: #ffffff;
+    background-image: radial-gradient(#111111 1px, transparent 1px);
+    background-size: 8px 8px;
+  }
+  .halftone-bg-dark {
+    background-color: #111111;
+    background-image: radial-gradient(#444444 1.5px, transparent 1.5px);
+    background-size: 10px 10px;
+  }
+
+  /* Mockup Layout Classes */
+  .manga-clip-panel {
+    clip-path: polygon(0 0, 100% 2%, 98% 100%, 2% 97%);
+  }
+  .diagonal-cut {
+    clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+  }
+  .halftone-overlay {
+    background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+    background-size: 8px 8px;
+  }
+  .ink-border {
+    border: 3px solid #221b03;
+    box-shadow: 6px 6px 0 0 #221b03;
+  }
+  .action-lines {
+    background: repeating-conic-gradient(from 0deg, transparent 0 15deg, rgba(0, 0, 0, 0.05) 15deg 30deg);
+  }
+  .speech-bubble {
+    position: relative;
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 40px;
+    padding: 15px;
+  }
+  .speech-bubble:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border: 20px solid transparent;
+    border-top-color: #000;
+    border-bottom: 0;
+    border-left: 0;
+    margin-left: -10px;
+    margin-bottom: -20px;
+  }
+
+  /* Minecraft Theme Classes */
+  .mc-font {
+    font-family: 'Press Start 2P', cursive;
+  }
+  .mc-panel {
+    background-color: #8b8b8b;
+    border: 4px solid #373737;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    box-shadow: inset -4px -4px 0px 0px #555555, inset 4px 4px 0px 0px #c6c6c6;
+  }
+  .mc-panel-inset {
+    background-color: #373737;
+    border: 4px solid #ffffff;
+    border-top-color: #373737;
+    border-left-color: #373737;
+    box-shadow: inset -4px -4px 0px 0px #c6c6c6, inset 4px 4px 0px 0px #555555;
+  }
+  .mc-button {
+    background-color: #8b8b8b;
+    border: 4px solid #373737;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    box-shadow: inset -4px -4px 0px 0px #555555, inset 4px 4px 0px 0px #c6c6c6;
+    color: #ffffff;
+    text-shadow: 2px 2px 0px #373737;
+  }
+  .mc-button:active {
+    border: 4px solid #ffffff;
+    border-top-color: #373737;
+    border-left-color: #373737;
+    box-shadow: inset -4px -4px 0px 0px #c6c6c6, inset 4px 4px 0px 0px #555555;
+  }
+  .mc-button-green {
+    background-color: #3c8527;
+    border: 4px solid #1a3c11;
+    border-top-color: #5bb33d;
+    border-left-color: #5bb33d;
+    box-shadow: inset -4px -4px 0px 0px #2a5a1b, inset 4px 4px 0px 0px #4d9c31;
+    color: #ffffff;
+    text-shadow: 2px 2px 0px #1a3c11;
+  }
+  .dirt-bg {
+    background-color: #866043;
+    background-image: radial-gradient(#5a3b22 10%, transparent 10%);
+    background-size: 16px 16px;
+  }
+  .stone-bg {
+    background-color: #7d7d7d;
+    background-image: radial-gradient(#555555 10%, transparent 10%);
+    background-size: 16px 16px;
+  }
+  .pixel-border {
+    box-shadow: 4px 4px 0 0 #000, -4px -4px 0 0 #000, 4px -4px 0 0 #000, -4px 4px 0 0 #000;
   }
 }

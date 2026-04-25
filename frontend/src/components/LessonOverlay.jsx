@@ -146,34 +146,34 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[100] bg-warm-cream flex flex-col"
+      className="fixed inset-0 z-[100] stone-bg flex flex-col"
     >
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <header className="shrink-0 z-10 bg-white/80 backdrop-blur-md border-b-2 border-stone-100 px-10 py-5 flex justify-between items-center">
+      <header className="shrink-0 z-10 bg-[#555] border-b-4 border-[#373737] px-10 py-5 flex justify-between items-center shadow-[0_4px_0_0_#111]">
         <div className="flex items-center gap-4">
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Mission</span>
-          <h2 className="font-display-secondary font-black text-xl">{topic}</h2>
+          <span className="mc-font text-[10px] uppercase tracking-widest text-[#ffeb3b]">Active Quest</span>
+          <h2 className="font-['VT323'] text-4xl tracking-widest text-white">{topic}</h2>
         </div>
         <div className="flex items-center gap-6">
           {stage === 'quiz' && lessonData?.questions && (
             <div className="flex items-center gap-2">
               {lessonData.questions.map((_, i) => (
-                <div key={i} className={`w-3 h-3 rounded-full border-2 border-black transition-all ${
+                <div key={i} className={`w-3 h-3 border-2 transition-all ${
                   xpBreakdown[i]
-                    ? (xpBreakdown[i].isCorrect ? 'bg-green-500 border-green-600' : 'bg-red-400 border-red-500')
-                    : i === currentQuestionIndex ? 'bg-black' : 'bg-transparent'
+                    ? (xpBreakdown[i].isCorrect ? 'bg-[#5bb33d] border-[#3c8527]' : 'bg-[#ff5555] border-[#990000]')
+                    : i === currentQuestionIndex ? 'bg-white border-[#373737]' : 'bg-transparent border-[#888]'
                 }`} />
               ))}
             </div>
           )}
           {/* Live XP counter */}
           {stage === 'quiz' && (
-            <span className="text-sm font-black text-matcha-600 bg-matcha-50 px-4 py-2 rounded-full border border-matcha-200">
+            <span className="mc-font text-[10px] text-[#5bb33d] bg-[#111] px-4 py-3 border-2 border-[#555]">
               {earnedXP} XP
             </span>
           )}
-          <button onClick={onClose} className="w-10 h-10 rounded-xl bg-stone-50 border border-stone-100 flex items-center justify-center hover:bg-black hover:text-white transition-all">
-            <span className="material-symbols-outlined">close</span>
+          <button onClick={onClose} className="w-10 h-10 mc-button flex items-center justify-center hover:brightness-110 transition-all">
+            <span className="material-symbols-outlined text-white">close</span>
           </button>
         </div>
       </header>
@@ -186,15 +186,15 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
             {/* ── Theory ─────────────────────────────────────────────── */}
             {stage === 'theory' && (
               <motion.div key="theory" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="space-y-10">
-                <div className="prose prose-stone max-w-none prose-headings:font-black prose-headings:tracking-tight prose-p:text-lg prose-p:leading-relaxed prose-code:bg-stone-100 prose-code:px-1 prose-code:rounded">
+                <div className="mc-panel p-8 text-white prose prose-invert max-w-none prose-headings:font-['VT323'] prose-headings:text-3xl prose-p:font-['VT323'] prose-p:text-xl prose-code:bg-[#111] prose-code:px-2 prose-code:py-1">
                   <ReactMarkdown>{lessonData.theory}</ReactMarkdown>
                 </div>
                 <button
                   onClick={handleNextStage}
                   disabled={!lessonData?.questions?.length}
-                  className="w-full py-6 bg-black text-white rounded-[28px] font-black text-xs uppercase tracking-[0.4em] shadow-[8px_8px_0px_0px_rgba(7,138,82,1)] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(7,138,82,1)] active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-6 mc-button-green mc-font text-lg disabled:opacity-50 hover:brightness-110 transition-all"
                 >
-                  {lessonData?.questions?.length ? "I'm Ready for the Quest ⚔️" : 'Preparing...'}
+                  {lessonData?.questions?.length ? "START QUEST ⚔️" : 'LOADING...'}
                 </button>
               </motion.div>
             )}
@@ -203,13 +203,13 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
             {stage === 'quiz' && currentQuestion && (
               <motion.div key={`q-${currentQuestionIndex}`} initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -50, opacity: 0 }} className="space-y-6">
 
-                <div className="bg-white p-10 rounded-[40px] border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-stone-400 mb-4">
-                    Question {currentQuestionIndex + 1} of {lessonData.questions.length}
-                    <span className="ml-4 text-stone-300">|</span>
-                    <span className="ml-4 text-matcha-500">{qType === 'fill_blank' ? 'Fill Blank' : qType?.toUpperCase()} · +{XP_RULES[qType] || 20} XP if correct</span>
+                <div className="mc-panel p-10 text-white">
+                  <p className="mc-font text-[10px] text-[#c6c6c6] mb-4">
+                    Quest Level {currentQuestionIndex + 1} of {lessonData.questions.length}
+                    <span className="ml-4 text-[#888]">|</span>
+                    <span className="ml-4 text-[#ffeb3b]">{qType === 'fill_blank' ? 'Fill Blank' : qType?.toUpperCase()} · +{XP_RULES[qType] || 20} XP</span>
                   </p>
-                  <h3 className="text-xl font-black mb-8 leading-tight">{currentQuestion.question_text}</h3>
+                  <h3 className="font-['VT323'] text-4xl mb-8 leading-tight tracking-wide">{currentQuestion.question_text}</h3>
 
                   {/* MCQ options */}
                   {qType === 'mcq' && (
@@ -219,9 +219,15 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
                           key={i}
                           onClick={() => handleAnswer(opt)}
                           disabled={!!selectedAnswer}
-                          className={`w-full p-5 text-left rounded-2xl border-2 font-bold transition-all text-sm ${getMCQStyle(opt)}`}
+                          className={`w-full p-5 text-left mc-button transition-all text-sm font-['VT323'] text-xl tracking-widest ${
+                            selectedAnswer ? '' : 'hover:brightness-110'
+                          } ${
+                            selectedAnswer && opt === feedback?.correctAnswer ? '!bg-[#5bb33d] !border-[#3c8527]' : ''
+                          } ${
+                            selectedAnswer && opt === selectedAnswer && opt !== feedback?.correctAnswer ? '!bg-[#ff5555] !border-[#990000]' : ''
+                          }`}
                         >
-                          <span className="inline-block w-7 h-7 rounded-full bg-black/10 text-center text-xs font-black leading-7 mr-3">
+                          <span className="inline-block w-7 h-7 bg-[#111] border-2 border-[#555] text-center text-xs mc-font leading-7 mr-3 text-white">
                             {['A','B','C','D'][i]}
                           </span>
                           {opt}
@@ -243,32 +249,32 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
                       <input
                         ref={fillInputRef}
                         type="text"
-                        placeholder="Type your answer and press Enter..."
+                        placeholder="Type answer & press Enter..."
                         disabled={!!selectedAnswer}
-                        className={`w-full p-5 border-2 rounded-2xl font-mono text-lg outline-none transition-all ${
+                        className={`w-full p-5 mc-panel-inset font-['VT323'] text-2xl text-white outline-none transition-all ${
                           selectedAnswer
-                            ? (feedback?.correct ? 'bg-green-50 border-green-400' : 'bg-red-50 border-red-400')
-                            : 'bg-stone-50 border-stone-200 focus:border-black'
+                            ? (feedback?.correct ? '!border-[#5bb33d]' : '!border-[#ff5555]')
+                            : 'focus:border-[#ffeb3b]'
                         }`}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleAnswer(e.target.value); }}
                       />
                       {!selectedAnswer && (
-                        <p className="text-[10px] font-black text-stone-400 uppercase text-center tracking-widest">Press Enter to Submit</p>
+                        <p className="mc-font text-[8px] text-[#c6c6c6] text-center">Press Enter to Craft</p>
                       )}
                     </div>
                   )}
 
                   {/* Coding question */}
                   {qType === 'coding' && (
-                    <div className="bg-black text-white p-6 rounded-2xl font-mono text-sm space-y-4">
-                      <p className="text-green-400">// Coding Challenge — +50 XP</p>
-                      <pre className="overflow-x-auto whitespace-pre-wrap text-stone-200">{currentQuestion.starter_code}</pre>
+                    <div className="bg-[#111] text-white p-6 border-4 border-[#373737] font-['VT323'] text-xl space-y-4">
+                      <p className="text-[#5bb33d]">// Coding Challenge — +50 XP</p>
+                      <pre className="overflow-x-auto whitespace-pre-wrap text-[#c6c6c6]">{currentQuestion.starter_code}</pre>
                       <button
                         onClick={() => handleAnswer(currentQuestion.correct_answer || 'coding_complete')}
                         disabled={!!selectedAnswer}
-                        className="w-full py-3 bg-green-600 rounded-xl font-black uppercase tracking-widest disabled:opacity-50"
+                        className="w-full py-3 mc-button-green mc-font text-[10px] disabled:opacity-50"
                       >
-                        ✓ Mark as Complete
+                        ✓ Mark Complete
                       </button>
                     </div>
                   )}
@@ -279,21 +285,21 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className={`p-6 rounded-2xl border-2 flex items-center justify-between gap-4 ${feedback.correct ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}`}
+                    className={`p-6 border-4 flex items-center justify-between gap-4 ${feedback.correct ? 'bg-[#5bb33d] border-[#3c8527] text-white' : 'bg-[#ff5555] border-[#990000] text-white'}`}
                   >
                     <div>
-                      <p className={`font-black text-base ${feedback.correct ? 'text-green-700' : 'text-red-700'}`}>
+                      <p className={`mc-font text-xs`}>
                         {feedback.message}
                       </p>
-                      <p className="text-xs text-stone-400 font-bold mt-1">
-                        Running total: <span className="text-matcha-600 font-black">{earnedXP} / {maxPossibleXP} XP</span>
+                      <p className="text-[10px] mc-font mt-2 text-[#eee]">
+                        Total: <span className="text-[#ffeb3b]">{earnedXP} / {maxPossibleXP} XP</span>
                       </p>
                     </div>
                     <button
                       onClick={handleNextStage}
-                      className="shrink-0 px-8 py-3 bg-black text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:scale-105 transition-all"
+                      className="shrink-0 px-8 py-4 mc-button mc-font text-xs hover:brightness-110 transition-all"
                     >
-                      Next →
+                      NEXT →
                     </button>
                   </motion.div>
                 )}
@@ -305,53 +311,53 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
               <motion.div key="summary" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-8">
 
                 {/* Pass or Fail badge */}
-                <div className={`w-32 h-32 rounded-[40px] flex items-center justify-center mx-auto shadow-2xl border-4 border-white rotate-12 ${passed ? 'bg-matcha-500' : 'bg-red-400'}`}>
-                  <span className="material-symbols-outlined text-white text-6xl font-black">
+                <div className={`w-32 h-32 flex items-center justify-center mx-auto border-4 border-white ${passed ? 'bg-[#5bb33d]' : 'bg-[#ff5555]'}`}>
+                  <span className="material-symbols-outlined text-white text-6xl">
                     {passed ? 'emoji_events' : 'sentiment_dissatisfied'}
                   </span>
                 </div>
 
                 <div>
-                  <h2 className="text-4xl font-black mb-3">{passed ? 'Quest Mastered! 🎉' : 'Not Quite...'}</h2>
-                  <p className="text-lg text-stone-500">
+                  <h2 className="mc-font text-2xl mb-4 text-[#ffeb3b] text-shadow-[2px_2px_0px_#000]">{passed ? 'Quest Cleared! 🎉' : 'You Died...'}</h2>
+                  <p className="font-['VT323'] text-3xl text-white">
                     {passed
-                      ? `You passed ${topic} with ${earnedXP}/${maxPossibleXP} XP!`
-                      : `You scored ${earnedXP}/${maxPossibleXP} XP. You need ${Math.ceil(maxPossibleXP * PASS_THRESHOLD)} XP to pass (60%).`}
+                      ? `You survived ${topic} with ${earnedXP}/${maxPossibleXP} XP!`
+                      : `You scored ${earnedXP}/${maxPossibleXP} XP. You need ${Math.ceil(maxPossibleXP * PASS_THRESHOLD)} XP to respawn.`}
                   </p>
                 </div>
 
                 {/* XP Breakdown table */}
-                <div className="bg-white p-8 rounded-[32px] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-stone-400 mb-4 text-center">Score Breakdown</p>
+                <div className="mc-panel p-8 text-left space-y-3">
+                  <p className="mc-font text-[10px] text-[#c6c6c6] mb-4 text-center">Quest Log</p>
                   {xpBreakdown.map((item, i) => (
                     <div key={i} className="flex items-center justify-between py-1">
                       <div className="flex items-center gap-3">
-                        <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${item.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-500'}`}>
-                          {item.isCorrect ? '✓' : '✗'}
+                        <span className={`w-7 h-7 flex items-center justify-center mc-font text-[8px] text-white ${item.isCorrect ? 'bg-[#5bb33d] border-2 border-[#3c8527]' : 'bg-[#ff5555] border-2 border-[#990000]'}`}>
+                          {item.isCorrect ? 'V' : 'X'}
                         </span>
-                        <span className="text-sm font-bold text-stone-500 uppercase tracking-wider">
+                        <span className="font-['VT323'] text-2xl text-white uppercase tracking-wider">
                           Q{i + 1} · {item.qType === 'fill_blank' ? 'Fill Blank' : item.qType?.toUpperCase()}
                         </span>
                       </div>
-                      <span className={`font-black text-sm ${item.isCorrect ? 'text-green-600' : 'text-stone-300'}`}>
+                      <span className={`mc-font text-[10px] ${item.isCorrect ? 'text-[#5bb33d]' : 'text-[#888]'}`}>
                         {item.isCorrect ? `+${item.xpGained} XP` : '0 XP'}
                       </span>
                     </div>
                   ))}
-                  <div className="border-t-2 border-stone-100 pt-4 mt-2 flex justify-between items-center">
-                    <span className="font-black uppercase tracking-widest text-sm">Total</span>
-                    <span className={`text-2xl font-black ${passed ? 'text-matcha-600' : 'text-red-500'}`}>
+                  <div className="border-t-4 border-[#373737] pt-4 mt-4 flex justify-between items-center">
+                    <span className="mc-font text-[10px] text-white">Total</span>
+                    <span className={`mc-font text-xs ${passed ? 'text-[#5bb33d]' : 'text-[#ff5555]'}`}>
                       {earnedXP} / {maxPossibleXP} XP
                     </span>
                   </div>
-                  <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="w-full h-4 bg-[#111] border-2 border-[#555] overflow-hidden mt-2">
                     <div
-                      className={`h-full rounded-full transition-all ${passed ? 'bg-matcha-500' : 'bg-red-400'}`}
+                      className={`h-full transition-all ${passed ? 'bg-[#5bb33d]' : 'bg-[#ff5555]'}`}
                       style={{ width: `${maxPossibleXP ? (earnedXP / maxPossibleXP) * 100 : 0}%` }}
                     />
                   </div>
-                  <p className="text-xs text-center text-stone-400 font-bold">
-                    {maxPossibleXP ? Math.round((earnedXP / maxPossibleXP) * 100) : 0}% · Pass threshold: 60%
+                  <p className="text-[8px] mc-font text-center text-[#c6c6c6] mt-2">
+                    {maxPossibleXP ? Math.round((earnedXP / maxPossibleXP) * 100) : 0}% · Threshold: 60%
                   </p>
                 </div>
 
@@ -359,17 +365,17 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
                 {passed ? (
                   <button
                     onClick={() => onFinish(earnedXP)}
-                    className="w-full py-5 bg-black text-white rounded-[28px] font-black text-xs uppercase tracking-[0.4em] shadow-[8px_8px_0px_0px_rgba(132,231,165,1)] transition-all hover:translate-y-[-2px]"
+                    className="w-full py-5 mc-button-green mc-font text-[10px] hover:brightness-110 transition-all"
                   >
-                    Continue to Next Mission →
+                    ENTER NEXT WORLD
                   </button>
                 ) : (
                   <div className="flex gap-4">
                     <button
                       onClick={onClose}
-                      className="flex-1 py-5 bg-stone-100 rounded-[28px] font-black text-xs uppercase tracking-widest hover:bg-stone-200 transition-all"
+                      className="flex-1 py-5 mc-button mc-font text-[10px] hover:brightness-110 transition-all"
                     >
-                      Exit
+                      EXIT TO TITLE
                     </button>
                     <button
                       onClick={() => {
@@ -381,9 +387,9 @@ const LessonOverlay = ({ topic, difficulty, onClose, onFinish, preWrittenTheory,
                         setXpBreakdown([]);
                         setPassed(false);
                       }}
-                      className="flex-1 py-5 bg-black text-white rounded-[28px] font-black text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(7,138,82,1)] hover:translate-y-[-2px] transition-all"
+                      className="flex-1 py-5 mc-button-green mc-font text-[10px] hover:brightness-110 transition-all"
                     >
-                      🔄 Retry Mission
+                      RESPAWN
                     </button>
                   </div>
                 )}

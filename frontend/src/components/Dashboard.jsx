@@ -1,782 +1,356 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { curriculumData as initialData } from '../data/curriculum';
-import LessonOverlay from './LessonOverlay';
+import React, { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { curriculumData } from '../data/curriculum.js';
+import LessonOverlay from './LessonOverlay.jsx';
 
-// XP per question type — single source of truth (matches LessonOverlay)
-const XP_RULES = { mcq: 20, fill_blank: 30, coding: 50 };
-const calcModuleXP = (mod) =>
-  (mod.questions || []).reduce((sum, q) => sum + (XP_RULES[q.type || q.question_type] || 20), 0);
-
-const Dashboard = ({ onLogout, onViewStats, onViewSettings, onViewAchievements }) => {
-  const [curriculum, setCurriculum] = useState(() => {
-    try {
-      // Restore mastered status from persisted completedSubtopics so that
-      // the unlock chain (isNodeVisible) works correctly after a page refresh
-      const saved = localStorage.getItem('cortexai_completed_subtopics_v2');
-      const completed = saved ? new Set(JSON.parse(saved)) : new Set();
-      // Also restore XP-unlocked side quests
-      const unlockedSideQuests = JSON.parse(localStorage.getItem('cortexai_unlocked_sidequests') || '[]');
-      return initialData.map(node => {
-        if (node.track_type === 'side_quest') {
-          const allDone = node.modules.every(m => completed.has(`${node.id}:${m.title}`));
-          if (allDone) return { ...node, status: 'mastered', progress: 100 };
-          if (unlockedSideQuests.includes(node.id)) return { ...node, status: 'in_progress' };
-          return node; // stays locked
-        }
-        const allDone = node.modules.every(m => completed.has(`${node.id}:${m.title}`));
-        return allDone ? { ...node, status: 'mastered', progress: 100 } : node;
-      });
-    } catch {
-      return initialData;
-    }
-  });
-  const [scale, setScale] = useState(0.65);
-
-  // Center on the first non-mastered core node on initial load
-  const getInitialPos = (curriculum) => {
-    const target = curriculum.find(n => n.track_type === 'core' && n.status !== 'mastered')
-      || curriculum[0];
-    return {
-      x: window.innerWidth / 2 - (target.position.x * 0.65),
-      y: window.innerHeight / 2 - (target.position.y * 0.65),
-    };
-  };
-  const initCurriculum = (() => {
-    try {
-      const saved = localStorage.getItem('cortexai_completed_subtopics_v2');
-      const completed = saved ? new Set(JSON.parse(saved)) : new Set();
-      const unlockedSideQuests = JSON.parse(localStorage.getItem('cortexai_unlocked_sidequests') || '[]');
-      return initialData.map(node => {
-        if (node.track_type === 'side_quest') {
-          const allDone = node.modules.every(m => completed.has(`${node.id}:${m.title}`));
-          if (allDone) return { ...node, status: 'mastered', progress: 100 };
-          if (unlockedSideQuests.includes(node.id)) return { ...node, status: 'in_progress' };
-          return node;
-        }
-        const allDone = node.modules.every(m => completed.has(`${node.id}:${m.title}`));
-        return allDone ? { ...node, status: 'mastered', progress: 100 } : node;
-      });
-    } catch { return initialData; }
-  })();
-  const initPos = getInitialPos(initCurriculum);
-  const [x, setX] = useState(initPos.x);
-  const [y, setY] = useState(initPos.y);
-  const containerRef = useRef(null);
-  const [alert, setAlert] = useState(null);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [showStats, setShowStats] = useState(false);
-  const statsRef = useRef(null);
+const Dashboard = () => {
+  // State from localStorage
+  const [completedSubtopics, setCompletedSubtopics] = useState(() => new Set(JSON.parse(localStorage.getItem('completedSubtopics') || '[]')));
+  const [userStats, setUserStats] = useState(() => JSON.parse(localStorage.getItem('userStats') || '{"xp":0,"level":1}'));
   const [activeLesson, setActiveLesson] = useState(null);
+  const [activeChapterId, setActiveChapterId] = useState(1);
 
-  // v2 keys force a clean reset (old scores wiped)
-  const [userStats, setUserStats] = useState(() => {
-    try {
-      const saved = localStorage.getItem('cortexai_userstats_v2');
-      return saved ? JSON.parse(saved) : { xp: 0, level: 1, streak: 0 };
-    } catch {
-      return { xp: 0, level: 1, streak: 0 };
-    }
-  });
-
+  // Sync to localStorage
   useEffect(() => {
-    localStorage.setItem('cortexai_userstats_v2', JSON.stringify(userStats));
-  }, [userStats]);
-
-  // CLOSE STATS ON CLICK OUTSIDE
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (statsRef.current && !statsRef.current.contains(event.target)) {
-        setShowStats(false);
-      }
-    };
-    if (showStats) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showStats]);
-
-  // Track which subtopics have been completed — v2 key resets on deploy
-  const [completedSubtopics, setCompletedSubtopics] = useState(() => {
-    try {
-      const saved = localStorage.getItem('cortexai_completed_subtopics_v2');
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('cortexai_completed_subtopics_v2', JSON.stringify([...completedSubtopics]));
+    localStorage.setItem('completedSubtopics', JSON.stringify([...completedSubtopics]));
   }, [completedSubtopics]);
 
-  const handleSubtopicComplete = (nodeId, moduleTitle, earnedXP = 0) => {
-    const node = curriculum.find(n => n.id === nodeId);
-    if (!node) return;
+  useEffect(() => {
+    localStorage.setItem('userStats', JSON.stringify(userStats));
+  }, [userStats]);
 
-    // 1. Add XP to user stats immediately + update streak
-    setUserStats(prev => {
-      const newXP = prev.xp + earnedXP;
+  // Data processing
+  const totalPossibleXP = curriculumData.reduce((acc, node) => {
+    return acc + node.modules.reduce((modAcc, mod) => modAcc + (mod.xp_reward || 20), 0);
+  }, 0);
+  const chakraPercentage = totalPossibleXP ? Math.min(100, Math.round((userStats.xp / totalPossibleXP) * 100)) : 0;
 
-      // Streak logic: increment once per calendar day
-      const today = new Date().toDateString();
-      const lastActive = localStorage.getItem('cortexai_last_active');
-      let newStreak = prev.streak || 0;
-      if (lastActive !== today) {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        newStreak = (lastActive === yesterday.toDateString()) ? newStreak + 1 : 1;
-        localStorage.setItem('cortexai_last_active', today);
-      }
+  const chapterImages = {
+    1: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAkgC-yz3wDRDHtQVE7ZY7SZ9lnp789HqZpuncrCVaQQyeCKxT9QIFXfXpnZ4YmWHvRXyHZhzY78l-y1ZGZ8C9FGP-B4ZT_XJm5cyM0ZnOXjxJ4mP4HNtQCv4mCSUQzY6tRX5SvbHG0Wb14KcJQxdwRjhGS36jZibb008IkLSegQuD6jpOuay2fi8YONMebOaNmLI7NScZbRibO37pkx_nGBG0VLcrkvLhOc1B6zNN2rCEOIitsAsZXps8u0rku6oSosclzXWavGEc',
+    2: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDTdibQdUWMATa00gmdKFoVjC7BNfM_RawIVGDIiig_rOQ9ub-bxZqqnkcCqksuRmhVOcrxmDj9uCZ4xulGhbFR35IkDyYr51IdVG4zi9cixA6StGiqyUaXSqzRJ0P_fxYw2nOpRn8xjG4M51azc3V1uN_9CRWx0YkIppc2TU4_9HsrNYTkh2efeyYftVKysh88dv-RvBMLqXeTxCKbxfwAwqkMS_-LuLfhsujrWvGraQzuhD9p2MTVuPOi4S7B-zgoABng1iIDJM8',
+    3: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAkgC-yz3wDRDHtQVE7ZY7SZ9lnp789HqZpuncrCVaQQyeCKxT9QIFXfXpnZ4YmWHvRXyHZhzY78l-y1ZGZ8C9FGP-B4ZT_XJm5cyM0ZnOXjxJ4mP4HNtQCv4mCSUQzY6tRX5SvbHG0Wb14KcJQxdwRjhGS36jZibb008IkLSegQuD6jpOuay2fi8YONMebOaNmLI7NScZbRibO37pkx_nGBG0VLcrkvLhOc1B6zNN2rCEOIitsAsZXps8u0rku6oSosclzXWavGEc',
+    4: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDTdibQdUWMATa00gmdKFoVjC7BNfM_RawIVGDIiig_rOQ9ub-bxZqqnkcCqksuRmhVOcrxmDj9uCZ4xulGhbFR35IkDyYr51IdVG4zi9cixA6StGiqyUaXSqzRJ0P_fxYw2nOpRn8xjG4M51azc3V1uN_9CRWx0YkIppc2TU4_9HsrNYTkh2efeyYftVKysh88dv-RvBMLqXeTxCKbxfwAwqkMS_-LuLfhsujrWvGraQzuhD9p2MTVuPOi4S7B-zgoABng1iIDJM8',
+  };
 
-      return {
-        ...prev,
-        xp: newXP,
-        level: Math.floor(newXP / 200) + 1,
-        streak: newStreak
-      };
+  const coreChapters = curriculumData.filter(n => n.chapter !== 'Side Quest');
+  const sideQuests = curriculumData.filter(n => n.chapter === 'Side Quest');
+
+  const activeChapter = coreChapters.find(c => c.id === activeChapterId) || coreChapters[0];
+
+  const handleStartSpecificMission = (node, targetMod) => {
+    if (userStats.xp < (node.xp_required || 0)) return;
+
+    setActiveLesson({
+      topic: targetMod.title,
+      difficulty: node.difficulty_level,
+      nodeId: node.id,
+      xpReward: targetMod.xp_reward || 20,
+      preWrittenTheory: targetMod.theory,
+      preWrittenQuestions: targetMod.questions
     });
+  };
 
-    // 2. Mark this subtopic as complete
-    const key = `${nodeId}:${moduleTitle}`;
-    const newCompleted = new Set([...completedSubtopics, key]);
-    setCompletedSubtopics(newCompleted);
+  const handleStartMission = (node) => {
+    if (userStats.xp < (node.xp_required || 0)) return;
 
-    // 3. Check if ALL subtopics in this node are now done
-    const allDone = node.modules.every(m => newCompleted.has(`${nodeId}:${m.title}`));
+    let targetMod = node.modules.find(mod => !completedSubtopics.has(`${node.id}:${mod.title}`));
+    if (!targetMod) targetMod = node.modules[node.modules.length - 1]; // Replay last
+    
+    handleStartSpecificMission(node, targetMod);
+  };
 
-    if (allDone) {
-      // Mark entire level as mastered, unlock next level
-      const updatedCurriculum = curriculum.map(n => {
-        if (n.id === nodeId) return { ...n, status: 'mastered', progress: 100 };
-        return n;
-      });
-      setCurriculum(updatedCurriculum);
-      setActiveLesson(null);
-      setSelectedNode(null);
-
-      // Navigate map to next level
-      const nextNode = updatedCurriculum.find(
-        n => n.prerequisite_topic_id === nodeId && n.track_type === 'core'
-      );
-      if (nextNode) {
-        setX(window.innerWidth / 2 - (nextNode.position.x * scale));
-        setY(window.innerHeight / 2 - (nextNode.position.y * scale));
-      }
-    } else {
-      // Auto-open the next unfinished subtopic in this level
-      const currentIndex = node.modules.findIndex(m => m.title === moduleTitle);
-      const nextMod = node.modules[currentIndex + 1];
-      if (nextMod) {
-        setActiveLesson({
-          topic: nextMod.title,
-          difficulty: node.difficulty_level,
-          nodeId: node.id,
-          xpReward: node.xp_reward,
-          preWrittenTheory: nextMod.theory,
-          preWrittenQuestions: nextMod.questions
+  const handleFinishLesson = (earnedXP) => {
+    if (activeLesson) {
+      const topicKey = `${activeLesson.nodeId}:${activeLesson.topic}`;
+      if (!completedSubtopics.has(topicKey)) {
+        setCompletedSubtopics(prev => {
+          const newSet = new Set(prev);
+          newSet.add(topicKey);
+          return newSet;
         });
-      } else {
-        setActiveLesson(null);
+        setUserStats(prev => ({ ...prev, xp: prev.xp + earnedXP }));
       }
     }
-  };
-
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartPos = useRef({ x: 0, y: 0 });
-
-  const handlePointerDown = (e) => {
-    setIsDragging(true);
-    dragStartPos.current = { x: e.clientX - x, y: e.clientY - y };
-  };
-
-  const handlePointerMove = (e) => {
-    if (!isDragging) return;
-    setX(e.clientX - dragStartPos.current.x);
-    setY(e.clientY - dragStartPos.current.y);
-  };
-
-  const handlePointerUp = () => setIsDragging(false);
-
-  // ── Stable-ref zoom: listener registered once, always reads latest values ──
-  const wheelStateRef = useRef({ scale, x, y, selectedNode });
-  useEffect(() => {
-    wheelStateRef.current = { scale, x, y, selectedNode };
-  });
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const handler = (e) => {
-      const { scale: s, x: cx, y: cy, selectedNode: sn } = wheelStateRef.current;
-      if (sn) return;
-      e.preventDefault();
-      const zoomSpeed = 0.008;
-      const minScale = 0.3;
-      const maxScale = 1.5;
-      const delta = -e.deltaY;
-      const newScale = Math.min(Math.max(s + delta * zoomSpeed * s, minScale), maxScale);
-      if (newScale !== s) {
-        const rect = container.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        const scaleRatio = newScale / s;
-        setScale(newScale);
-        setX(mouseX - (mouseX - cx) * scaleRatio);
-        setY(mouseY - (mouseY - cy) * scaleRatio);
-      }
-    };
-    container.addEventListener('wheel', handler, { passive: false });
-    return () => container.removeEventListener('wheel', handler);
-  }, []); // registered ONCE — no stale-closure gap
-
-  const isNodeVisible = (node) => {
-    if (node.track_type === 'side_quest') return true; // always shown, locked by XP
-    if (!node.prerequisite_topic_id) return true;
-    const prereq = curriculum.find(n => n.id === node.prerequisite_topic_id);
-    return prereq && prereq.status === 'mastered';
-  };
-
-  const handleUnlockSideQuest = (nodeId) => {
-    const node = curriculum.find(n => n.id === nodeId);
-    if (!node || node.track_type !== 'side_quest') return;
-    if (userStats.xp < node.xp_required) return;
-    // Deduct XP and unlock
-    setUserStats(prev => ({ ...prev, xp: prev.xp - node.xp_required }));
-    const updatedCurriculum = curriculum.map(n =>
-      n.id === nodeId ? { ...n, status: 'in_progress' } : n
-    );
-    setCurriculum(updatedCurriculum);
-    const prev = JSON.parse(localStorage.getItem('cortexai_unlocked_sidequests') || '[]');
-    localStorage.setItem('cortexai_unlocked_sidequests', JSON.stringify([...prev, nodeId]));
-  };
-
-  const minimapRef = useRef(null);
-  const minimapScale = 0.022; 
-  const miniOffsetX = 20; 
-  const miniOffsetY = 60; 
-
-  const miniViewportWidth = window.innerWidth / scale * minimapScale;
-  const miniViewportHeight = window.innerHeight / scale * minimapScale;
-  const miniX = (-x / scale);
-  const miniY = (-y / scale);
-
-  const handleMinimapInteraction = (e) => {
-    const rect = minimapRef.current.getBoundingClientRect();
-    const clickX = (e.clientX - rect.left - miniOffsetX) / minimapScale;
-    const clickY = (e.clientY - rect.top - miniOffsetY) / minimapScale;
-
-    const clickedNode = curriculum.find(n => {
-       const dx = Math.abs(n.position.x - clickX);
-       const dy = Math.abs(n.position.y - clickY);
-       return dx < 300 && dy < 300;
-    });
-
-    if (clickedNode && !isNodeVisible(clickedNode)) {
-      setAlert("DEFEAT THE BEFORE BOSS TO UNLOCK THIS SECTOR");
-      setTimeout(() => setAlert(null), 3000);
-      return;
-    }
-
-    if (clickedNode && isNodeVisible(clickedNode)) {
-      setSelectedNode(clickedNode);
-    }
-
-    setX(window.innerWidth / 2 - (clickX * scale));
-    setY(window.innerHeight / 2 - (clickY * scale));
+    setActiveLesson(null);
   };
 
   return (
-    <div 
-      ref={containerRef}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
-      className="bg-warm-cream bg-grid-pattern w-screen h-screen font-body-standard text-primary overflow-hidden relative select-none"
-    >
-      {/* WhatsApp-style Background Overlay */}
-      <div 
-        className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.06]" 
-        style={{ 
-          backgroundImage: "url('/wa-bg.png')",
-          backgroundRepeat: 'repeat',
-          backgroundSize: '400px'
-        }} 
-      />
-
-      <header className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-10 py-6 bg-white/80 backdrop-blur-md border-b-2 border-stone-100">
+    <div className="bg-background text-on-background font-body-md ninja-grid min-h-screen relative">
+      {/* Top Navigation Bar */}
+      <header className="bg-[#555555] flex justify-between items-center w-full px-6 py-4 fixed top-0 z-50 border-b-4 border-[#373737] shadow-[0_4px_0px_0px_#111]">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
-            <span className="material-symbols-outlined text-white">bolt</span>
-          </div>
-          <h1 className="text-2xl font-black tracking-tighter text-black uppercase italic">CortexAI</h1>
+          <span className="text-xl mc-font text-[#ffffff] drop-shadow-[2px_2px_0px_#000] uppercase tracking-tighter">CRAFTER ACADEMY</span>
         </div>
-        
-        <div className="flex items-center gap-6">
-          <div className="relative" ref={statsRef}>
-            <button 
-              onClick={onViewAchievements}
-              className="flex items-center gap-3 bg-white border-2 border-black px-6 py-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all hover:bg-stone-50"
-            >
-              <div className="flex items-center gap-2 border-r-2 border-stone-100 pr-4">
-                <span className="material-symbols-outlined text-matcha-600 font-black">stars</span>
-                <span className="text-sm font-black">{userStats.xp} XP</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-orange-500 font-black">local_fire_department</span>
-                <span className="text-sm font-black">{userStats.streak} DAY</span>
-              </div>
-            </button>
-
-            <AnimatePresence>
-              {showStats && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-[calc(100%+20px)] right-0 w-72 bg-white border-2 border-black rounded-[32px] shadow-[20px_20px_60px_rgba(0,0,0,0.1)] p-8 z-[100]"
-                >
-                  <div className="flex flex-col gap-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center">
-                        <span className="text-white font-black text-xl">{userStats.level}</span>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Current Level</p>
-                        <h4 className="font-black text-lg leading-none">Level {userStats.level}</h4>
-                      </div>
-                    </div>
-                    <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(userStats.xp % 200) / 2}%` }}
-                        className="h-full bg-matcha-500"
-                      />
-                    </div>
-                    <div className="flex justify-center">
-                      <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100 text-center w-full">
-                        <p className="text-[10px] font-black text-stone-400 uppercase mb-1">Streak</p>
-                        <p className="text-sm font-black">{userStats.streak} Days</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 pt-2">
-                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400 text-center">7-Day Activity Monitor</p>
-                       <div className="flex justify-between items-center gap-1">
-                          {[0, 1, 1, 0, 1, 1, 1].map((active, i) => (
-                            <div key={i} className="flex flex-col items-center gap-1">
-                              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.05 }} className={`w-7 h-7 rounded-lg border ${active ? 'bg-matcha-500 border-matcha-600 shadow-[0_0_10px_rgba(34,197,94,0.2)]' : 'bg-stone-100 border-stone-200'}`} />
-                              <span className="text-[7px] font-black text-stone-300 uppercase">{['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}</span>
-                            </div>
-                          ))}
-                       </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+        <div className="hidden md:flex gap-8 items-center">
+          <nav className="flex gap-6 mc-font text-xs uppercase tracking-tighter">
+            <a className="text-[#5bb33d] hover:text-white transition-colors" href="#">Quests</a>
+            <a className="text-[#c6c6c6] hover:text-white transition-colors" href="#">Blueprints</a>
+            <a className="text-[#c6c6c6] hover:text-white transition-colors" href="#">Redstone</a>
+            <a className="text-[#c6c6c6] hover:text-white transition-colors" href="#">Stats</a>
+          </nav>
+          <div className="flex gap-4">
+            <span className="material-symbols-outlined text-stone-900">notifications</span>
+            <span className="material-symbols-outlined text-stone-900" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
           </div>
-
-          <button onClick={onLogout} className="w-12 h-12 rounded-full bg-white border-2 border-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none">
-            <span className="material-symbols-outlined font-black">logout</span>
-          </button>
         </div>
       </header>
 
-      <aside className="fixed top-[94px] bottom-0 left-0 w-24 bg-white/80 backdrop-blur-md border-r-2 border-stone-100 z-50 flex flex-col items-center py-10 gap-10">
-        {['Curriculum', 'Stats', 'Achievements', 'Settings'].map((item, idx) => (
-          <div key={item} className="relative group flex flex-col items-center gap-2">
-            <motion.a 
-              onClick={(e) => {
-                e.preventDefault();
-                if (item === 'Stats') onViewStats();
-                if (item === 'Achievements') onViewAchievements();
-                if (item === 'Settings') onViewSettings();
-              }}
-              whileHover={{ scale: 1.1 }}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${idx === 0 ? 'bg-black text-white shadow-lg' : 'text-stone-300 hover:text-black hover:bg-stone-50'}`} 
-              href="#"
-            >
-              <span className="material-symbols-outlined text-2xl">{['school', 'bar_chart', 'emoji_events', 'settings'][idx]}</span>
-            </motion.a>
-            <span className="absolute left-[80px] bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap pointer-events-none shadow-xl border border-white/10">{item}</span>
-            <span className="text-[8px] font-black uppercase tracking-widest text-stone-300 mt-1 opacity-0 group-hover:opacity-100 transition-all">{item}</span>
-          </div>
-        ))}
-      </aside>
-
-      <AnimatePresence>
-        {selectedNode && (
-          <motion.div 
-            initial={{ x: -400 }} 
-            animate={{ x: 24 * 4 }} 
-            exit={{ x: -400 }} 
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }} 
-            onPointerDown={(e) => e.stopPropagation()}
-            onWheel={(e) => e.stopPropagation()}
-            className="fixed top-[94px] bottom-0 left-0 w-96 bg-white z-[40] shadow-[30px_0_60px_rgba(0,0,0,0.1)] border-r-2 border-stone-100 flex flex-col p-10 overflow-y-auto overscroll-contain"
-          >
-            <div className="flex justify-between items-start mb-10">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mb-2">{selectedNode.chapter}</p>
-                <h2 className="font-['Epilogue'] font-black text-3xl leading-tight">{selectedNode.topic_name}</h2>
-              </div>
-              <button onClick={() => setSelectedNode(null)} className="w-10 h-10 rounded-xl bg-stone-50 border border-stone-100 flex items-center justify-center hover:bg-black hover:text-white transition-all">
-                 <span className="material-symbols-outlined">close</span>
-              </button>
+      <div className="flex pt-20 pb-20 md:pb-0 min-h-screen">
+        {/* Sidebar Shell */}
+        <aside className="hidden lg:flex flex-col h-[calc(100vh-80px)] w-72 p-4 space-y-6 mc-panel sticky top-20">
+            <div className="p-4 mc-panel-inset">
+                <div className="flex items-center gap-3">
+                    <img alt="Rank Icon" className="w-12 h-12 pixel-rendering" style={{imageRendering: 'pixelated'}} src="/mc_rank.png" />
+                    <div>
+                        <p className="mc-font text-[10px] uppercase text-white mb-2">Novice Builder</p>
+                        <p className="text-[8px] mc-font text-[#5bb33d]">Next: Journeyman</p>
+                    </div>
+                </div>
+                <div className="mt-4 bg-[#111] border-2 border-[#555] h-3 w-full overflow-hidden">
+                    <div className="bg-[#5bb33d] h-full" style={{ width: `${chakraPercentage}%` }}></div>
+                </div>
             </div>
-            <div className="space-y-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Mission Parameters</p>
-              <div className="grid grid-cols-2 gap-4">
-                 <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100"><p className="text-[10px] font-bold text-stone-400 uppercase mb-1">Difficulty</p><p className="text-xs font-black uppercase tracking-widest">{selectedNode.difficulty_level}</p></div>
-                 <div className="p-4 bg-matcha-50 rounded-2xl border border-matcha-100"><p className="text-[10px] font-bold text-matcha-600 uppercase mb-1">Total XP Potential</p><p className="text-xs font-black text-matcha-600">{selectedNode.modules.reduce((s, m) => s + calcModuleXP(m), 0)} XP</p></div>
-              </div>
-              <div className="space-y-4 pt-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Core Modules</p>
-                {selectedNode.modules.map((mod, i) => {
-                  const isDone = completedSubtopics.has(`${selectedNode.id}:${mod.title}`);
-                  return (
-                    <motion.div
-                      initial={{ x: -20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: i * 0.1 }}
-                      key={i}
-                      onClick={() => setActiveLesson({
-                        topic: mod.title,
-                        difficulty: selectedNode.difficulty_level,
-                        nodeId: selectedNode.id,
-                        xpReward: selectedNode.xp_reward,
-                        preWrittenTheory: mod.theory,
-                        preWrittenQuestions: mod.questions
-                      })}
-                      className={`flex items-center gap-4 p-4 rounded-[20px] border group cursor-pointer transition-all ${
-                        isDone
-                          ? 'bg-green-50 border-green-200 hover:border-green-500'
-                          : 'bg-stone-50 border-stone-100 hover:border-black'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all shrink-0 ${
-                        isDone
-                          ? 'bg-green-500 text-white'
-                          : 'bg-white border border-stone-200 text-stone-400 group-hover:bg-black group-hover:text-white'
-                      }`}>
-                        {isDone
-                          ? <span className="material-symbols-outlined text-sm">check</span>
-                          : i + 1
-                        }
+
+            <nav className="flex flex-col gap-3">
+                <button className="flex items-center gap-3 p-3 mc-button mc-button-green mc-font text-[10px]">
+                    <span className="material-symbols-outlined">assignment</span>
+                    Quests
+                </button>
+                <button className="flex items-center gap-3 p-3 mc-button mc-font text-[10px]">
+                    <span className="material-symbols-outlined">psychology</span>
+                    Redstone
+                </button>
+                <button className="flex items-center gap-3 p-3 mc-button mc-font text-[10px]">
+                    <span className="material-symbols-outlined">map</span>
+                    World Map
+                </button>
+                <button className="flex items-center gap-3 p-3 mc-button mc-font text-[10px]">
+                    <span className="material-symbols-outlined">groups</span>
+                    Guilds
+                </button>
+            </nav>
+
+            <button onClick={() => handleStartMission(activeChapter)} className="mt-auto mc-button mc-button-green py-4 px-6 mc-font text-[10px] hover:brightness-110">
+                ENTER WORLD
+            </button>
+        </aside>
+
+        {/* Main Content Canvas */}
+        <main className="flex-1 p-6 md:p-8 dirt-bg">
+          <div className="max-w-6xl mx-auto space-y-12">
+            
+            {/* Hero Dashboard Section */}
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Profile Panel */}
+                <div className="lg:col-span-1 mc-panel p-6 relative overflow-hidden group">
+                    <div className="relative z-10">
+                        <h2 className="mc-font text-[14px] text-white mb-6">RANK: NOVICE</h2>
+                        <img alt="Hero Portrait" className="w-full aspect-square object-cover pixel-border mb-4" style={{imageRendering: 'pixelated'}} src="/mc_avatar.png" />
+                        <div className="space-y-2 mt-6">
+                            <p className="mc-font text-[10px] text-[#c6c6c6]">Exp Levels ({userStats.xp} XP)</p>
+                            <div className="h-6 bg-[#111] border-2 border-[#555] flex items-center px-1 overflow-hidden">
+                                <div className="h-4 bg-[#5bb33d]" style={{ width: `${chakraPercentage}%` }}></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Storyline Panels */}
+                <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+                    {/* Active Chapter */}
+                    <div className="col-span-2 mc-panel-inset p-4 relative overflow-hidden group cursor-pointer" onClick={() => setActiveChapterId(activeChapter.id)}>
+                        <div className="absolute top-0 right-0 p-3 mc-button-green mc-font text-[10px] text-white z-20">ACTIVE!</div>
+                        <div className="flex flex-col md:flex-row gap-6 items-center">
+                            <div className="w-full md:w-1/3 border-4 border-[#111] overflow-hidden">
+                                <img alt={activeChapter.topic_name} className="w-full h-48 object-cover opacity-90 group-hover:opacity-100 transition-opacity pixel-rendering" style={{imageRendering: 'pixelated'}} src={activeChapter.id === 1 ? '/mc_banner_forest.png' : activeChapter.id === 2 ? '/mc_banner_nether.png' : '/mc_banner_end.png'} />
+                            </div>
+                            <div className="flex-1 p-2 text-white">
+                                <h3 className="mc-font text-lg mb-4 text-[#ffeb3b]">WORLD 0{activeChapter.id}: {activeChapter.topic_name.toUpperCase()}</h3>
+                                <p className="font-['VT323'] text-xl text-[#c6c6c6] mb-6 tracking-wide">{activeChapter.storyDescription}</p>
+                                <div className="flex gap-4">
+                                    <button onClick={(e) => { e.stopPropagation(); handleStartMission(activeChapter); }} className="mc-button mc-font text-[10px] px-6 py-3">RESUME QUEST</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Next / Locked Chapters */}
+                    {coreChapters.filter(c => c.id !== activeChapter.id).slice(0, 2).map((chapter, idx) => {
+                        const isLocked = userStats.xp < (chapter.xp_required || 0);
+                        return (
+                            <div key={chapter.id} onClick={() => !isLocked && setActiveChapterId(chapter.id)} className={`mc-panel p-4 relative ${isLocked ? 'brightness-50 cursor-not-allowed' : 'cursor-pointer hover:brightness-110 transition-all'}`}>
+                                {isLocked && (
+                                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                                        <span className="material-symbols-outlined text-6xl text-white">lock</span>
+                                    </div>
+                                )}
+                                <h4 className="mc-font text-[10px] text-white">WORLD 0{chapter.id}: {chapter.topic_name.toUpperCase()}</h4>
+                                <div className="h-32 mc-panel-inset mt-4 flex overflow-hidden border-2 border-[#111]">
+                                     <img src={chapter.id === 1 ? '/mc_banner_forest.png' : chapter.id === 2 ? '/mc_banner_nether.png' : '/mc_banner_end.png'} style={{imageRendering: 'pixelated'}} className="w-full h-full object-cover mix-blend-multiply opacity-50" />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </section>
+
+          {/* Active Arc Storyboard (Modules Grid) */}
+          <section>
+            <div className="flex items-center gap-4 mb-6">
+              <span className="material-symbols-outlined text-4xl text-white">grid_view</span>
+              <h2 className="mc-font text-lg text-white">WORLD LEVELS</h2>
+            </div>
+
+            {/* Modules Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activeChapter.modules.map((mod, index) => {
+                const isCompleted = completedSubtopics.has(`${activeChapter.id}:${mod.title}`);
+                const isBoss = mod.isBoss;
+
+                return (
+                  <div 
+                    key={index} 
+                    onClick={() => handleStartSpecificMission(activeChapter, mod)}
+                    className={`group relative mc-panel p-6 cursor-pointer hover:brightness-110 transition-all duration-300 ${
+                      isBoss 
+                        ? 'col-span-1 md:col-span-2 lg:col-span-3 border-[#ff0000] border-t-[#ff6666] border-left-[#ff6666]' 
+                        : ''
+                    }`}
+                  >
+                    <div className={`absolute -top-4 -left-4 px-3 py-2 mc-font text-[10px] text-white ${isBoss ? 'mc-button border-[#990000] bg-[#cc0000]' : 'mc-button-green'}`}>
+                      {isBoss ? 'BOSS MOB' : `LVL 0${index + 1}`}
+                    </div>
+                    {isCompleted && (
+                      <div className="absolute -top-4 -right-4 mc-button-green px-3 py-2 mc-font text-[10px] text-white z-10">
+                        CLEARED
                       </div>
-                      <span className={`text-sm font-bold truncate ${
-                        isDone ? 'text-green-700 line-through opacity-70' : 'text-stone-600 group-hover:text-black'
-                      }`}>
-                        {mod.title}
-                      </span>
-                      {isDone && <span className="ml-auto text-[9px] font-black text-green-600 uppercase tracking-widest shrink-0">Done ✓</span>}
-                      {!isDone && <span className="ml-auto text-[9px] font-black text-stone-300 shrink-0">+{calcModuleXP(mod)} XP</span>}
-                    </motion.div>
+                    )}
+
+                    <div className="mt-4">
+                      <h3 className={`font-['VT323'] tracking-wide mb-2 ${isBoss ? 'text-5xl text-[#ff6666]' : 'text-3xl text-white'}`}>{mod.title.toUpperCase()}</h3>
+                      <div className={`flex justify-between items-center mt-6 pt-4 border-t-4 border-[#373737]`}>
+                         <span className={`mc-font text-[10px] ${isBoss ? 'text-[#ff6666]' : 'text-[#c6c6c6]'}`}>
+                           +{mod.xp_reward || 20} XP
+                         </span>
+                         <span className={`material-symbols-outlined text-2xl ${isCompleted ? 'text-[#5bb33d]' : 'text-white'}`}>
+                           {isCompleted ? 'replay' : 'play_circle'}
+                         </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Side Quests & Jutsu */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
+            {/* Secret Scrolls */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 text-white">
+                <span className="material-symbols-outlined text-4xl">menu_book</span>
+                <h2 className="mc-font text-lg">ANCIENT BLUEPRINTS</h2>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                {sideQuests.map((quest) => {
+                  const isLocked = userStats.xp < (quest.xp_required || 0);
+                  const isCompleted = quest.modules.every(mod => completedSubtopics.has(`${quest.id}:${mod.title}`));
+                  return (
+                    <div key={quest.id} onClick={() => !isLocked && handleStartMission(quest)} className={`flex items-center mc-panel p-4 cursor-pointer hover:brightness-110 transition-all ${isLocked ? 'brightness-50 grayscale' : ''}`}>
+                      <div className="w-12 h-12 bg-[#111] border-2 border-[#555] flex items-center justify-center text-[#5bb33d]">
+                        <span className="material-symbols-outlined">{isLocked ? 'lock' : 'auto_stories'}</span>
+                      </div>
+                      <div className="ml-4 flex-1 text-white">
+                        <p className="mc-font text-[10px] uppercase">{quest.topic_name}</p>
+                        <p className="text-[8px] mc-font text-[#c6c6c6] mt-2">{isLocked ? `Requires ${quest.xp_required} XP` : quest.subtitle}</p>
+                      </div>
+                      {isCompleted ? (
+                         <span className="material-symbols-outlined ml-auto text-[#5bb33d]">check_circle</span>
+                      ) : (
+                         <span className="material-symbols-outlined ml-auto text-[#888]">{isLocked ? 'lock' : 'chevron_right'}</span>
+                      )}
+                    </div>
                   );
                 })}
               </div>
-              {/* Progress indicator */}
-              <div className="pt-2">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2">
-                  <span>Progress</span>
-                  <span>{selectedNode.modules.filter(m => completedSubtopics.has(`${selectedNode.id}:${m.title}`)).length} / {selectedNode.modules.length}</span>
+            </div>
+
+            {/* Redstone Engineering */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 text-white">
+                <span className="material-symbols-outlined text-4xl text-[#ff5555]">bolt</span>
+                <h2 className="mc-font text-lg">REDSTONE SKILLS</h2>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div onClick={() => handleStartMission(coreChapters[0])} className="mc-panel p-4 text-center cursor-pointer hover:brightness-110 transition-all text-white">
+                  <div className="mb-2 text-xl font-['VT323'] tracking-widest text-[#ff5555]">PISTON</div>
+                  <span className="material-symbols-outlined text-3xl text-[#ff5555]">settings_overscan</span>
+                  <p className="text-[8px] mt-4 mc-font text-[#5bb33d]">READY</p>
                 </div>
-                <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-green-500 rounded-full transition-all"
-                    style={{ width: `${(selectedNode.modules.filter(m => completedSubtopics.has(`${selectedNode.id}:${m.title}`)).length / selectedNode.modules.length) * 100}%` }}
-                  />
+                <div onClick={() => handleStartMission(coreChapters[1])} className="mc-panel p-4 text-center cursor-pointer brightness-50 transition-all text-white">
+                  <div className="mb-2 text-xl font-['VT323'] tracking-widest text-[#5555ff]">REPEATER</div>
+                  <span className="material-symbols-outlined text-3xl text-[#5555ff]">memory</span>
+                  <p className="text-[8px] mt-4 mc-font text-[#c6c6c6]">LOCKED</p>
+                </div>
+                <div onClick={() => handleStartMission(coreChapters[2])} className="mc-panel p-4 text-center cursor-pointer brightness-50 transition-all text-white">
+                  <div className="mb-2 text-xl font-['VT323'] tracking-widest text-[#55ff55]">OBSERVER</div>
+                  <span className="material-symbols-outlined text-3xl text-[#55ff55]">visibility</span>
+                  <p className="text-[8px] mt-4 mc-font text-[#c6c6c6]">LOCKED</p>
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </section>
 
-      <AnimatePresence>
-        {alert && (
-          <motion.div initial={{ y: -50, opacity: 0, x: '-50%' }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} className="fixed top-32 left-1/2 z-[100] px-8 py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(220,38,38,0.3)] border-2 border-white/20">
-            {alert}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* Achievement Alerts */}
+          {chakraPercentage >= 20 && (
+              <div className="relative py-12 mt-12">
+                  <div className="absolute left-1/2 -translate-x-1/2 -top-4 mc-button-green mc-font text-[10px] px-8 py-4 z-10">
+                      LEVEL UP!
+                  </div>
+                  <div className="mc-panel p-8 text-center text-white">
+                      <h3 className="mc-font text-lg mb-6 mt-4 text-[#ffeb3b]">Achievement Get!</h3>
+                      <p className="font-['VT323'] text-2xl text-[#c6c6c6]">You have gathered over {userStats.xp} Experience points!</p>
+                  </div>
+              </div>
+          )}
+          </div>
+        </main>
+      </div>
 
+      {/* Bottom Navigation Bar (Mobile Only) */}
+      <footer className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-2 pb-safe mc-panel shadow-[0_-4px_0px_0px_#111]">
+        <a className="flex flex-col items-center justify-center mc-button-green px-4 py-2" href="#">
+          <span className="material-symbols-outlined text-white">map</span>
+          <span className="mc-font text-[8px] text-white mt-1">Quests</span>
+        </a>
+        <a className="flex flex-col items-center justify-center text-[#c6c6c6]" href="#">
+          <span className="material-symbols-outlined">menu_book</span>
+          <span className="mc-font text-[8px] mt-1">Blueprints</span>
+        </a>
+        <a className="flex flex-col items-center justify-center text-[#c6c6c6]" href="#">
+          <span className="material-symbols-outlined">fitness_center</span>
+          <span className="mc-font text-[8px] mt-1">Redstone</span>
+        </a>
+        <a className="flex flex-col items-center justify-center text-[#c6c6c6]" href="#">
+          <span className="material-symbols-outlined">bar_chart</span>
+          <span className="mc-font text-[8px] mt-1">Stats</span>
+        </a>
+      </footer>
+
+      {/* Active Lesson Modal Overlay */}
       <AnimatePresence>
         {activeLesson && (
           <LessonOverlay 
             topic={activeLesson.topic}
             difficulty={activeLesson.difficulty}
+            xpReward={activeLesson.xpReward}
+            preWrittenTheory={activeLesson.preWrittenTheory}
+            preWrittenQuestions={activeLesson.preWrittenQuestions}
             onClose={() => setActiveLesson(null)}
-            onFinish={() => {
-              handleFinishModule(activeLesson.nodeId);
-              setActiveLesson(null);
-            }}
+            onFinish={handleFinishLesson}
           />
         )}
       </AnimatePresence>
-
-      <main onPointerDown={handlePointerDown} className="absolute inset-0 overflow-hidden cursor-grab active:cursor-grabbing z-0 pl-24">
-        <div className="fixed top-[110px] right-10 z-30 w-64 h-52 bg-black/95 backdrop-blur-xl rounded-[32px] border-4 border-white/20 shadow-2xl overflow-hidden hidden lg:block">
-           <div className="absolute top-4 left-0 right-0 flex items-center justify-center gap-2 z-20"><div className="w-2 h-2 rounded-full bg-matcha-500 animate-pulse shadow-[0_0_10px_#84e7a5]" /><span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/70">Tactical Radar</span></div>
-           <div ref={minimapRef} onClick={handleMinimapInteraction} className="relative w-full h-full cursor-crosshair">
-              <div style={{ transform: `translate(${miniOffsetX}px, ${miniOffsetY}px) scale(${minimapScale})`, transformOrigin: '0 0' }} className="absolute inset-0 w-[12000px] h-[5000px]">
-                <svg className="absolute inset-0 w-full h-full">
-                  {curriculum.map(node => {
-                    if (!node.prerequisite_topic_id) return null;
-                    const prereq = curriculum.find(n => n.id === node.prerequisite_topic_id);
-                    if (!prereq) return null;
-                    const isVisible = isNodeVisible(node);
-                    return <path key={`mini-line-${node.id}`} d={`M ${prereq.position.x} ${prereq.position.y} L ${node.position.x} ${node.position.y}`} stroke={node.status === 'mastered' ? '#078a52' : isVisible ? '#ffffff' : '#ffffff05'} strokeWidth="60" fill="none" />
-                  })}
-                </svg>
-                {curriculum.map(node => {
-                  const isVisible = isNodeVisible(node);
-                  return <div key={`mini-node-${node.id}`} className={`absolute rounded-2xl border-[30px] transition-all ${node.status === 'mastered' ? 'bg-matcha-500 border-white' : isVisible ? 'bg-white border-white/50' : 'bg-white/5 border-white/5'}`} style={{ left: node.position.x, top: node.position.y, transform: 'translate(-50%, -50%)', width: 450, height: 450 }} />
-                })}
-              </div>
-              <motion.div className="absolute border-[3px] border-matcha-500 bg-matcha-500/10 pointer-events-none rounded-xl" style={{ left: (miniX * minimapScale) + miniOffsetX, top: (miniY * minimapScale) + miniOffsetY, width: miniViewportWidth, height: miniViewportHeight }} />
-           </div>
-        </div>
-
-        <div style={{ transform: `translate(${x}px, ${y}px) scale(${scale})`, transition: isDragging ? 'none' : 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)' }} className="absolute origin-top-left">
-          <div className="relative min-w-[12000px] min-h-[5000px]">
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
-              {curriculum.map(node => {
-                if (!node.prerequisite_topic_id) return null;
-                const prereq = curriculum.find(n => n.id === node.prerequisite_topic_id);
-                if (!prereq || !isNodeVisible(node)) return null;
-                const isMastered = node.status === 'mastered';
-                const angle = Math.atan2(node.position.y - prereq.position.y, node.position.x - prereq.position.x);
-                const offset = 220; 
-                const endX = node.position.x - Math.cos(angle) * offset;
-                const endY = node.position.y - Math.sin(angle) * offset;
-                const startX = prereq.position.x + Math.cos(angle) * 220;
-                const startY = prereq.position.y + Math.sin(angle) * 220;
-                const d = `M ${startX} ${startY} C ${(startX + endX) / 2} ${startY}, ${(startX + endX) / 2} ${endY}, ${endX} ${endY}`;
-                return <path key={`line-${node.id}`} d={d} fill="none" stroke={isMastered ? '#078a52' : '#d6d3d1'} strokeWidth="8" strokeDasharray={isMastered ? "0" : "16,16"} className="transition-all duration-1000" />
-              })}
-            </svg>
-            <AnimatePresence>
-              {curriculum.map((node, i) => {
-                if (!isNodeVisible(node)) return null;
-                const isMastered = node.status === 'mastered';
-                const isSideQuest = node.track_type === 'side_quest';
-                const isLocked = isSideQuest && node.status === 'locked';
-                const canAfford = userStats.xp >= (node.xp_required || 0);
-
-                // ── Side Quest Card ──────────────────────────────────────────
-                if (isSideQuest) {
-                  const sqIcons = { 5: 'html', 6: 'brush', 7: 'storage' };
-                  const sqColors = {
-                    5: { border: 'border-orange-300', bg: 'bg-orange-400', glow: 'shadow-[16px_16px_0px_0px_rgba(251,146,60,0.5)]' },
-                    6: { border: 'border-blue-300', bg: 'bg-blue-500', glow: 'shadow-[16px_16px_0px_0px_rgba(59,130,246,0.5)]' },
-                    7: { border: 'border-purple-300', bg: 'bg-purple-500', glow: 'shadow-[16px_16px_0px_0px_rgba(168,85,247,0.5)]' },
-                  };
-                  const sqStyle = sqColors[node.id] || sqColors[5];
-
-                  return (
-                    <motion.div
-                      key={node.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className={`absolute w-[420px] bg-white rounded-[48px] border-2 ${sqStyle.border} p-10 z-10 overflow-hidden transition-all ${isLocked ? 'shadow-[16px_16px_0px_0px_rgba(0,0,0,0.15)]' : sqStyle.glow}`}
-                      style={{ left: node.position.x, top: node.position.y, transform: 'translate(-50%, -50%)' }}
-                    >
-                      {/* Side Quest badge */}
-                      <div className="absolute top-6 right-6 bg-amber-400 border-2 border-black rounded-xl px-3 py-1 text-[9px] font-black uppercase tracking-widest shadow-[2px_2px_0px_0px_black]">
-                        ⚡ Side Quest
-                      </div>
-
-                      <div className="flex flex-col gap-6">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-16 h-16 rounded-[24px] ${sqStyle.bg} border-2 border-black/20 flex items-center justify-center shadow-lg`}>
-                            <span className="material-symbols-outlined text-white text-4xl font-black">{sqIcons[node.id] || 'code'}</span>
-                          </div>
-                          {isLocked && (
-                            <div className="w-12 h-12 bg-stone-100 border-2 border-stone-300 rounded-2xl flex items-center justify-center">
-                              <span className="material-symbols-outlined text-stone-400 text-2xl">lock</span>
-                            </div>
-                          )}
-                          {isMastered && (
-                            <div className="bg-matcha-600 w-12 h-12 rounded-full flex items-center justify-center shadow-xl border-4 border-white">
-                              <span className="material-symbols-outlined text-white text-2xl font-black">check</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <p className="text-[11px] font-black uppercase tracking-[0.5em] text-stone-400 mb-1">{node.chapter}</p>
-                          <h3 className="font-['Epilogue'] font-black text-2xl text-black leading-tight tracking-tight">{node.topic_name}</h3>
-                        </div>
-
-                        {/* Module list — only if unlocked */}
-                        {!isLocked ? (
-                          <div className="space-y-3">
-                            {node.modules.map((mod, mi) => (
-                              <div
-                                key={mi}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveLesson({
-                                    topic: mod.title,
-                                    difficulty: node.difficulty_level,
-                                    nodeId: node.id,
-                                    xpReward: node.xp_reward,
-                                    preWrittenTheory: mod.theory,
-                                    preWrittenQuestions: mod.questions
-                                  });
-                                }}
-                                className={`flex items-center gap-4 p-3 rounded-2xl border cursor-pointer transition-all group/mod ${
-                                  completedSubtopics.has(`${node.id}:${mod.title}`)
-                                    ? 'bg-green-50 border-green-200'
-                                    : 'bg-stone-50 border-stone-100 hover:border-black'
-                                }`}
-                              >
-                                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
-                                  completedSubtopics.has(`${node.id}:${mod.title}`)
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-white border border-stone-200 text-stone-300 group-hover/mod:bg-black group-hover/mod:text-white transition-all'
-                                }`}>
-                                  {completedSubtopics.has(`${node.id}:${mod.title}`)
-                                    ? <span className="material-symbols-outlined text-sm">check</span>
-                                    : mi + 1
-                                  }
-                                </span>
-                                <span className={`text-sm font-bold truncate ${
-                                  completedSubtopics.has(`${node.id}:${mod.title}`)
-                                    ? 'text-green-700 line-through opacity-60'
-                                    : 'text-stone-600 group-hover/mod:text-black'
-                                }`}>{mod.title.split(' ').slice(1).join(' ')}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          /* Locked overlay */
-                          <div className="bg-stone-50 border-2 border-dashed border-stone-200 rounded-3xl p-6 text-center">
-                            <p className="text-stone-400 text-xs font-bold mb-1">{node.modules.length} modules inside</p>
-                            <p className="text-stone-300 text-[10px] uppercase tracking-widest">Earn {node.xp_required} XP to access</p>
-                          </div>
-                        )}
-
-                        {/* Bottom bar */}
-                        <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                          <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-amber-500 text-xl">stars</span>
-                            <div>
-                              <p className="text-[9px] font-black text-stone-400 uppercase">Unlock Cost</p>
-                              <p className="text-base font-black text-amber-600">{node.xp_required} XP</p>
-                            </div>
-                          </div>
-                          {isLocked ? (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleUnlockSideQuest(node.id); }}
-                              disabled={!canAfford}
-                              className={`px-6 py-3 rounded-2xl border-2 border-black font-black text-[10px] uppercase tracking-widest transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none ${
-                                canAfford
-                                  ? 'bg-amber-400 hover:bg-amber-300 text-black'
-                                  : 'bg-stone-100 text-stone-400 cursor-not-allowed opacity-60'
-                              }`}
-                            >
-                              {canAfford ? '🔓 Unlock' : `Need ${node.xp_required - userStats.xp} more XP`}
-                            </button>
-                          ) : (
-                            <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest bg-stone-50 px-4 py-2 rounded-full">{node.difficulty_level}</span>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                }
-
-                // ── Core Node Card (existing) ────────────────────────────────
-                const styles = { border: 'border-black', bg: 'bg-white', icon: 'code' };
-                return (
-                  <motion.div key={node.id} onClick={() => setSelectedNode(node)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`absolute w-[450px] bg-white rounded-[48px] border-2 ${styles.border} p-12 z-10 cursor-pointer overflow-hidden shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] hover:shadow-2xl transition-all`} style={{ left: node.position.x, top: node.position.y, transform: 'translate(-50%, -50%)' }}>
-                    <div className="flex flex-col gap-8">
-                      <div className="flex items-center justify-between"><div className={`w-16 h-16 rounded-[24px] ${styles.bg} border-2 border-black/10 flex items-center justify-center shadow-lg`}><span className="material-symbols-outlined text-white text-4xl font-black">{styles.icon}</span></div>{isMastered && <div className="bg-matcha-600 w-12 h-12 rounded-full flex items-center justify-center shadow-2xl border-4 border-white"><span className="material-symbols-outlined text-white text-2xl font-black">check</span></div>}</div>
-                      <div><p className="text-[11px] font-black uppercase tracking-[0.5em] text-stone-400 mb-2">{node.chapter}</p><h3 className="font-['Epilogue'] font-black text-3xl text-black leading-tight tracking-tight">{node.topic_name}</h3></div>
-                      <div className="space-y-4">
-                        {node.modules.map((mod, mi) => (
-                          <div 
-                            key={mi} 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveLesson({ 
-                                topic: mod.title, 
-                                difficulty: node.difficulty_level,
-                                nodeId: node.id,
-                                xpReward: node.xp_reward,
-                                preWrittenTheory: mod.theory,
-                                preWrittenQuestions: mod.questions
-                              });
-                            }}
-                          className={`flex items-center gap-4 p-4 rounded-[20px] border cursor-pointer transition-all group/mod ${
-                            completedSubtopics.has(`${node.id}:${mod.title}`)
-                              ? 'bg-green-50 border-green-200'
-                              : 'bg-stone-50 border-stone-100 hover:border-black'
-                          }`}
-                          >
-                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
-                              completedSubtopics.has(`${node.id}:${mod.title}`)
-                                ? 'bg-green-500 text-white'
-                                : 'bg-white border border-stone-100 text-stone-300 group-hover/mod:bg-black group-hover/mod:text-white transition-all'
-                            }`}>
-                              {completedSubtopics.has(`${node.id}:${mod.title}`)
-                                ? <span className="material-symbols-outlined text-sm">check</span>
-                                : mod.title.split(' ')[0]
-                              }
-                            </span>
-                            <span className={`text-sm font-bold truncate ${
-                              completedSubtopics.has(`${node.id}:${mod.title}`)
-                                ? 'text-green-700 line-through opacity-60'
-                                : 'text-stone-600 group-hover/mod:text-black transition-colors'
-                            }`}>
-                              {mod.title.split(' ').slice(1).join(' ')}
-                            </span>
-                            {completedSubtopics.has(`${node.id}:${mod.title}`) && (
-                              <span className="ml-auto text-[9px] font-black text-green-600 uppercase tracking-widest shrink-0">✓</span>
-                            )}
-</div>
-                        ))}
-                      </div>
-                      <div className="mt-6 pt-8 border-t border-stone-100 flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-matcha-600 text-2xl font-black">stars</span>
-                          <div>
-                            <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest">XP Potential</p>
-                            <span className="text-lg font-black text-matcha-600">{node.modules.reduce((s, m) => s + calcModuleXP(m), 0)} XP</span>
-                          </div>
-                        </div>
-                        <span className="text-[11px] font-black text-stone-400 uppercase tracking-widest bg-stone-50 px-6 py-3 rounded-full">{node.difficulty_level}</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        </div>
-      </main>
-
-      {/* Lesson Overlay — mounts when a module is clicked */}
-      {activeLesson && (
-        <LessonOverlay
-          key={activeLesson.topic}
-          topic={activeLesson.topic}
-          difficulty={activeLesson.difficulty}
-          preWrittenTheory={activeLesson.preWrittenTheory}
-          preWrittenQuestions={activeLesson.preWrittenQuestions}
-          xpReward={activeLesson.xpReward}
-          onClose={() => setActiveLesson(null)}
-          onFinish={(earnedXP) => {
-            handleSubtopicComplete(activeLesson.nodeId, activeLesson.topic, earnedXP);
-          }}
-        />
-      )}
     </div>
   );
 };

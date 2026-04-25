@@ -2,8 +2,10 @@ export const curriculumData = [
   {
     id: 1,
     subject: 'Python',
-    chapter: 'Level 1',
-    topic_name: 'Programming Basics',
+    chapter: 'Genin Trials',
+    topic_name: 'The Scroll of Variables',
+    subtitle: 'Variables',
+    storyDescription: 'The ancient scroll contains the memories of the digital realm. Master the art of storing data to preserve the world\'s history.',
     difficulty_level: 'easy',
     xp_reward: 100,
     track_type: 'core',
@@ -15,44 +17,50 @@ export const curriculumData = [
         title: '1.1 What is Programming?',
         theory: "### 🚀 What is Programming?\n\nProgramming is the process of creating a set of instructions that tell a computer how to perform a task. Imagine you are giving a recipe to a friend who has never cooked before—you need to be very precise! \n\n**Key Concepts:**\n*   **Algorithms:** A step-by-step procedure for solving a problem.\n*   **Code:** The language we use to write these algorithms.\n*   **Python:** A high-level language that is easy to read and powerful enough for NASA, Google, and AI research.",
         questions: [
-          { type: 'mcq', question_text: "What is an 'algorithm' in programming?", options: ["A type of computer", "A step-by-step procedure for solving a problem", "A fancy word for software", "A hardware component"], correct_answer: "A step-by-step procedure for solving a problem" },
-          { type: 'mcq', question_text: "Why is Python a great language for beginners?", options: ["It's very old", "It reads almost like English", "It only works on Windows", "It is very expensive"], correct_answer: "It reads almost like English" },
-          { type: 'fill_blank', question_text: "Programming is the art of giving ___ to a computer.", correct_answer: "instructions" },
-          { type: 'fill_blank', question_text: "The set of rules for how code must be written is called ___.", correct_answer: "syntax" },
-          { type: 'mcq', question_text: "Which of these is NOT a programming language?", options: ["Python", "Java", "C++", "Google"], correct_answer: "Google" }
+          { type: 'mcq', question_text: "Master Kai needs a plan to bypass the Phantom's lock. What is a step-by-step procedure called?", options: ["A type of computer", "An algorithm", "Software", "Hardware"], correct_answer: "An algorithm" },
+          { type: 'mcq', question_text: "The academy recruits use a language that reads like English. Which language is this?", options: ["Java", "Python", "C++", "Binary"], correct_answer: "Python" },
+          { type: 'fill_blank', question_text: "The defense gate awaits your command. Programming is the art of giving ___ to a computer.", correct_answer: "instructions" },
+          { type: 'fill_blank', question_text: "The spell structure is broken. The strict set of rules for writing code is called ___.", correct_answer: "syntax" },
+          { type: 'mcq', question_text: "The archive contains a fake spell. Which of these is NOT a programming language?", options: ["Python", "Java", "C++", "Google"], correct_answer: "Google" }
         ]
       },
       {
         title: '1.2 Variables',
         theory: "### 📦 Variables: Storage for Data\n\nIn programming, a **variable** is like a labeled box. You can store information inside it and use the label to find it later.\n\n**Example:**\n```python\nplayer_name = \"Alex\"\nscore = 10\n```\nHere, `player_name` is the label, and `\"Alex\"` is the value inside. You can change the value anytime: `score = 20`.",
         questions: [
-          { type: 'mcq', question_text: "What is the primary purpose of a variable?", options: ["To speed up the computer", "To store data that can be used later", "To connect to the internet", "To delete files"], correct_answer: "To store data that can be used later" },
-          { type: 'mcq', question_text: "In the code 'x = 10', what is 'x'?", options: ["The value", "The operator", "The variable name", "A function"], correct_answer: "The variable name" },
-          { type: 'fill_blank', question_text: "To assign a value to a variable in Python, we use the ___ sign.", correct_answer: "=" },
-          { type: 'fill_blank', question_text: "A variable name in Python cannot start with a ___.", correct_answer: "number" },
-          { type: 'mcq', question_text: "Can you change the value of a variable after it is created in Python?", options: ["Yes", "No", "Only if it is a number", "Only on Tuesdays"], correct_answer: "Yes" }
+          { type: 'mcq', question_text: "A warrior's name is fading from the archive. Which concept is used to store data?", options: ["Functions", "Variables", "Loops", "Syntax"], correct_answer: "Variables" },
+          { type: 'mcq', question_text: "You find the spell 'shield_power = 10'. What is 'shield_power'?", options: ["The value", "The operator", "The variable name", "A function"], correct_answer: "The variable name" },
+          { type: 'fill_blank', question_text: "To store an energy value into a variable, you use the ___ sign.", correct_answer: "=" },
+          { type: 'fill_blank', question_text: "Master Kai warns you: A variable name cannot start with a ___.", correct_answer: "number" },
+          { type: 'mcq', question_text: "A warrior's power level increased. Can you change a variable's value after creating it?", options: ["Yes", "No", "Only if it's a number", "Only during battles"], correct_answer: "Yes" }
         ]
       },
       {
         title: '1.3 Data Types',
         theory: "### 🧩 Data Types\n\nPython needs to know what *kind* of data you are storing. The four most common types are:\n\n1.  **Integers (int):** Whole numbers like `5` or `-10`.\n2.  **Floats (float):** Decimal numbers like `3.14`.\n3.  **Strings (str):** Text wrapped in quotes, like `\"Hello\"`.\n4.  **Booleans (bool):** `True` or `False` values.",
         questions: [
-          { type: 'mcq', question_text: "What data type would you use to store a person's name?", options: ["Integer", "Float", "String", "Boolean"], correct_answer: "String" },
-          { type: 'mcq', question_text: "Which of these is a Float?", options: ["5", "3.14", "\"Hello\"", "True"], correct_answer: "3.14" },
-          { type: 'fill_blank', question_text: "A variable that can only be True or False is a ___.", correct_answer: "Boolean" },
-          { type: 'fill_blank', question_text: "Whole numbers are represented by the ___ data type.", correct_answer: "Integer" },
-          { type: 'mcq', question_text: "What is the type of the value '\"123\"'?", options: ["Integer", "String", "Float", "None of the above"], correct_answer: "String" }
+          { type: 'mcq', question_text: "The scanner needs to log a hero's identity. Which data type stores text?", options: ["Integer", "Float", "String", "Boolean"], correct_answer: "String" },
+          { type: 'mcq', question_text: "The teleport gate needs an exact decimal. Which of these is a Float?", options: ["5", "3.14", "\"Hello\"", "True"], correct_answer: "3.14" },
+          { type: 'fill_blank', question_text: "The gate sensor is either active or inactive. A True/False variable is a ___.", correct_answer: "Boolean" },
+          { type: 'fill_blank', question_text: "You must count the surviving warriors. Whole numbers use the ___ data type.", correct_answer: "Integer" },
+          { type: 'mcq', question_text: "A scroll shows the value '\"123\"' wrapped in quotes. What is its data type?", options: ["Integer", "String", "Float", "None"], correct_answer: "String" }
         ]
       },
       {
-        title: '1.4 Input / Output',
-        theory: "### 💬 Talking to the Computer\n\n*   **Output:** Use the `print()` function to show things on the screen.\n*   **Input:** Use the `input()` function to ask the user for information.\n\n**Example:**\n```python\nname = input(\"What is your name? \")\nprint(\"Hello, \" + name)\n```",
+        title: 'Memory Leak Boss',
+        isBoss: true,
+        theory: "### 👾 Memory Leak Boss: Input / Output\n\nThe Memory Leak Boss is draining the scroll's energy! You must master communication with the system to stabilize the memory banks.\n\n*   **Output:** Use the `print()` function to show things on the screen.\n*   **Input:** Use the `input()` function to ask the user for information.\n\n**Example:**\n```python\nname = input(\"What is your name? \")\nprint(\"Hello, \" + name)\n```",
         questions: [
-          { type: 'mcq', question_text: "Which function is used to show text on the screen?", options: ["input()", "show()", "print()", "display()"], correct_answer: "print()" },
-          { type: 'mcq', question_text: "What does the input() function always return by default?", options: ["A number", "A Boolean", "A String", "A Float"], correct_answer: "A String" },
-          { type: 'fill_blank', question_text: "To ask a user for their age, you would use the ___() function.", correct_answer: "input" },
-          { type: 'fill_blank', question_text: "To output 'Welcome' to the console, you write ___(\"Welcome\").", correct_answer: "print" },
-          { type: 'mcq', question_text: "How do you combine two strings in a print statement?", options: ["Using +", "Using *", "Using -", "Using /"], correct_answer: "Using +" }
+          { type: 'mcq', question_text: "The boss broke the communication system. Which Python function shows output on the screen?", options: ["input()", "show()", "print()", "display()"], correct_answer: "print()" },
+          { type: 'mcq', question_text: "You ask the recruit for an override code. What data type does input() return by default?", options: ["An Integer", "A Boolean", "A String", "A Float"], correct_answer: "A String" },
+          { type: 'fill_blank', question_text: "To ask a scout for the enemy's power level, you use the ___() function.", correct_answer: "input" },
+          { type: 'fill_blank', question_text: "To broadcast a welcome signal, you write ___(\"Welcome\").", correct_answer: "print" },
+          { 
+            type: 'coding', 
+            question_text: "The boss is draining the energy crystals. Write code to calculate total_energy and output it.",
+            starter_code: "warrior_1 = 4500\nwarrior_2 = 5500\n\n# Calculate total_energy and use print() to output it!\ntotal_energy = ",
+            correct_answer: "coding_complete"
+          }
         ]
       }
     ]
@@ -60,8 +68,10 @@ export const curriculumData = [
   {
     id: 2,
     subject: 'Python',
-    chapter: 'Level 2',
-    topic_name: 'Logic Building',
+    chapter: 'Chunin Exams',
+    topic_name: 'Infinite Loop Grounds',
+    subtitle: 'Loops',
+    storyDescription: 'You are trapped inside a time loop dungeon. Master loops to escape and break the cycle of infinity.',
     prerequisite_topic_id: 1,
     difficulty_level: 'medium',
     xp_reward: 200,
@@ -92,8 +102,9 @@ export const curriculumData = [
         ]
       },
       {
-        title: '2.3 Loop Practice',
-        theory: "### 🛠️ Loop Mastery\n\nLoops are powerful tools for automation. You can nest loops inside each other to handle complex data like grids or tables.",
+        title: 'Infinite Loop Boss',
+        isBoss: true,
+        theory: "### 🌀 Infinite Loop Boss\n\nThe dungeon is collapsing! Use your mastery of nested loops and flow control to stabilize the time-space continuum.\n\n**Example:**\n```python\nfor i in range(3):\n    for j in range(2):\n        print(f\"Stablizing {i},{j}...\")\n```",
         questions: [
           { type: 'mcq', question_text: "What is a loop inside another loop called?", options: ["Double loop", "Nested loop", "Multi loop", "Grid loop"], correct_answer: "Nested loop" },
           { type: 'mcq', question_text: "Which keyword helps you loop through a list and get the index?", options: ["index()", "enumerate()", "count()", "list()"], correct_answer: "enumerate()" },
@@ -107,8 +118,10 @@ export const curriculumData = [
   {
     id: 3,
     subject: 'Python',
-    chapter: 'Level 3',
-    topic_name: 'Functions & Errors',
+    chapter: 'Jonin Missions',
+    topic_name: 'Summoning Functions',
+    subtitle: 'Functions',
+    storyDescription: 'Learn reusable coding spells to summon powerful logic and defeat enemies efficiently.',
     prerequisite_topic_id: 2,
     difficulty_level: 'medium',
     xp_reward: 350,
@@ -128,8 +141,9 @@ export const curriculumData = [
         ]
       },
       {
-        title: '3.2 Parameters',
-        theory: "### 📥 Parameters and Arguments\n\nParameters act as placeholders for the data you pass into a function. Arguments are the actual values you send.",
+        title: 'The Great Summoner Boss',
+        isBoss: true,
+        theory: "### 🧙‍♂️ The Great Summoner Boss\n\nProve your mastery of summoning techniques by passing complex arguments and managing multiple parameters to defeat the Great Summoner.",
         questions: [
           { type: 'mcq', question_text: "What is an argument?", options: ["A coding error", "A value sent to a function", "A variable inside a function", "A type of loop"], correct_answer: "A value sent to a function" },
           { type: 'mcq', question_text: "Can a function have multiple parameters?", options: ["Yes", "No", "Only two", "Only if they are strings"], correct_answer: "Yes" },
@@ -143,8 +157,10 @@ export const curriculumData = [
   {
     id: 4,
     subject: 'Python',
-    chapter: 'Level 4',
-    topic_name: 'Data Structures',
+    chapter: 'S-Rank Missions',
+    topic_name: 'Data Structure Dimension',
+    subtitle: 'Data Structures',
+    storyDescription: 'The world is not what it seems. Master complex data structures to navigate the distorted realities of the Mirror Dimension.',
     prerequisite_topic_id: 3,
     difficulty_level: 'hard',
     xp_reward: 500,
@@ -153,8 +169,9 @@ export const curriculumData = [
     status: 'locked',
     modules: [
       {
-        title: '4.1 Lists',
-        theory: "### 📜 Lists\n\nLists are used to store multiple items in a single variable. They are ordered, changeable, and allow duplicate values.\n\n**Example:**\n```python\nfruits = [\"apple\", \"banana\", \"cherry\"]\n```",
+        title: 'Fractal List Boss',
+        isBoss: true,
+        theory: "### 📜 Fractal List Boss\n\nLists in the Mirror Dimension are infinite and self-similar. Master list indexing and manipulation to find your way out.\n\n**Example:**\n```python\nfruits = [\"apple\", \"banana\", \"cherry\"]\n```",
         questions: [
           { type: 'mcq', question_text: "How do you access the first item in a list?", options: ["list[1]", "list[0]", "list.first()", "list.get(0)"], correct_answer: "list[0]" },
           { type: 'mcq', question_text: "Which method adds an item to the end of a list?", options: ["add()", "insert()", "append()", "push()"], correct_answer: "append()" },
@@ -168,8 +185,10 @@ export const curriculumData = [
   {
     id: 5,
     subject: 'Web',
-    chapter: 'Side Quest',
-    topic_name: 'HTML Fundamentals',
+    chapter: 'Quest',
+    topic_name: 'Realm of HTML',
+    subtitle: 'HTML',
+    storyDescription: 'Construct the foundations of the digital world. You are the architect of reality.',
     difficulty_level: 'easy',
     xp_reward: 80,
     xp_required: 100,
@@ -189,8 +208,9 @@ export const curriculumData = [
         ]
       },
       {
-        title: '5.2 HTML Tags & Elements',
-        theory: "### 🏷️ HTML Tags & Elements\n\nHTML elements are the building blocks of pages. Most elements have an opening and closing tag.\n\n**Common Tags:**\n- `<p>` — paragraph\n- `<img>` — image\n- `<ul>` / `<li>` — unordered list\n- `<div>` — container block\n- `<span>` — inline container",
+        title: 'Structural Integrity Boss',
+        isBoss: true,
+        theory: "### 🏗️ Structural Integrity Boss\n\nThe realm is unstable! Use proper HTML tags to reinforce the structure of the world before it collapses.",
         questions: [
           { type: 'mcq', question_text: "Which tag is used to insert an image?", options: ["<picture>", "<image>", "<img>", "<src>"], correct_answer: "<img>" },
           { type: 'fill_blank', question_text: "A ___ tag does not have a closing tag.", correct_answer: "self-closing" },
@@ -204,8 +224,10 @@ export const curriculumData = [
   {
     id: 6,
     subject: 'Web',
-    chapter: 'Side Quest',
-    topic_name: 'CSS Styling',
+    chapter: 'Quest',
+    topic_name: 'Sanctuary of CSS',
+    subtitle: 'CSS',
+    storyDescription: 'Infuse your creations with visual essence. Master the spectrum of styles to bring beauty to the realm.',
     difficulty_level: 'medium',
     xp_reward: 150,
     xp_required: 200,
@@ -225,11 +247,12 @@ export const curriculumData = [
         ]
       },
       {
-        title: '6.2 Box Model & Layout',
-        theory: "### 📦 The CSS Box Model\n\nEvery HTML element is a box. The box model defines how space is calculated:\n\n```\n┌──────────────────────┐\n│       Margin         │\n│  ┌────────────────┐  │\n│  │    Border      │  │\n│  │  ┌──────────┐  │  │\n│  │  │ Padding  │  │  │\n│  │  │ Content  │  │  │\n│  │  └──────────┘  │  │\n│  └────────────────┘  │\n└──────────────────────┘\n```",
+        title: 'Prism Overlord Boss',
+        isBoss: true,
+        theory: "### 🌈 Prism Overlord Boss\n\nThe Overlord has drained all color! Master the CSS Box Model and Layout techniques to restore the vibrant spectrum of the world.",
         questions: [
           { type: 'mcq', question_text: "Which property creates space INSIDE an element's border?", options: ["margin", "spacing", "padding", "border-gap"], correct_answer: "padding" },
-          { type: 'mcq', question_text: "Which CSS value makes elements sit side by side?", options: ["display: block", "display: flex", "display: none", "display: inline-flex"], correct_answer: "display: flex" },
+          { type: 'mcq', question_text: "Which CSS value makes elements sit side by side?", options: ["display: block", "display: flex", "display: none", "display: inner-flex"], correct_answer: "display: flex" },
           { type: 'fill_blank', question_text: "The CSS property that creates space OUTSIDE an element is ___.", correct_answer: "margin" },
           { type: 'fill_blank', question_text: "To make an element invisible but still take space, use visibility: ___.", correct_answer: "hidden" },
           { type: 'mcq', question_text: "What does 'display: none' do?", options: ["Makes element transparent", "Removes element from layout", "Hides only the text", "Changes the color to white"], correct_answer: "Removes element from layout" }
@@ -240,8 +263,10 @@ export const curriculumData = [
   {
     id: 7,
     subject: 'SQL',
-    chapter: 'Side Quest',
-    topic_name: 'SQL Basics',
+    chapter: 'Quest',
+    topic_name: 'SQL Keeper Trials',
+    subtitle: 'SQL',
+    storyDescription: 'Enter the hidden vaults of information. Master the language of databases to unlock the world\'s secrets.',
     difficulty_level: 'hard',
     xp_reward: 200,
     xp_required: 300,
@@ -261,8 +286,9 @@ export const curriculumData = [
         ]
       },
       {
-        title: '7.2 INSERT & UPDATE',
-        theory: "### ✏️ Modifying Data in SQL\n\n**INSERT** adds new rows:\n```sql\nINSERT INTO students (name, grade)\nVALUES ('Alice', 95);\n```\n\n**UPDATE** modifies existing rows:\n```sql\nUPDATE students\nSET grade = 98\nWHERE name = 'Alice';\n```\n\n**DELETE** removes rows:\n```sql\nDELETE FROM students WHERE grade < 50;\n```",
+        title: 'The Grand Archivist Boss',
+        isBoss: true,
+        theory: "### 📚 The Grand Archivist Boss\n\nThe Archivist is rewriting history! Master data modification commands to correct the records and secure the data vaults.",
         questions: [
           { type: 'mcq', question_text: "Which command adds a new row to a table?", options: ["ADD", "INSERT INTO", "CREATE ROW", "APPEND"], correct_answer: "INSERT INTO" },
           { type: 'mcq', question_text: "Which command modifies existing data?", options: ["MODIFY", "CHANGE", "UPDATE", "EDIT"], correct_answer: "UPDATE" },
